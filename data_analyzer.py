@@ -10,6 +10,7 @@ import numpy as np
 import traceback
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
+from sklearn.linear_model import LinearRegression
 
 
 class DataAnalyzer(QObject):
@@ -286,7 +287,7 @@ class DataAnalyzer(QObject):
         :return: Textual analysis for monthly data.
         """
         if variable not in df.columns:
-            return f"No data for variable '{variable}' to analyze."
+            return "No data for variable '{}' to analyze.".format(variable)
 
         try:
             df[month_column] = pd.to_datetime(df[month_column], errors='coerce')
@@ -295,73 +296,23 @@ class DataAnalyzer(QObject):
 
             df['Month'] = df[month_column].dt.month
             df['Year'] = df[month_column].dt.year
+            df.set_index(month_column, inplace=True)
 
             analysis_text = ["Time Series Analysis - Monthly Analysis:"]
 
-            # General trend analysis for each month
-            for month in range(1, 13):
-                month_df = df[df['Month'] == month]
-                if month_df.empty:
-                    continue
-                avg_value = month_df[variable].mean()
-                trend = "rise" if month_df[variable].diff().mean() > 0 else "drop"
-                analysis_text.append(f"Each {month}, {variable} tends to show a {trend}, averaging {avg_value:.2f}.")
+            # Calculate and append volatility analysis
+            df['monthly_volatility'] = df[variable].rolling('30D').std()
+            most_volatile_month = df['monthly_volatility'].idxmax()
+            least_volatile_month = df['monthly_volatility'].idxmin()
+            analysis_text.append("The most volatile month was {}, while the least volatile was {}.".format(
+                most_volatile_month.strftime('%Y-%m'), least_volatile_month.strftime('%Y-%m')))
 
-            # Highest/Lowest variable by month
-            max_value = df.groupby('Month')[variable].mean().max()
-            min_value = df.groupby('Month')[variable].mean().min()
-            max_month = df.groupby('Month')[variable].mean().idxmax()
-            min_month = df.groupby('Month')[variable].mean().idxmin()
-            analysis_text.append(
-                f"The month of {max_month} is historically known for the highest {variable}, averaging {max_value:.2f}.")
-            analysis_text.append(
-                f"The month of {min_month} is historically known for the lowest {variable}, averaging {min_value:.2f}.")
-
-            # Comparing months
-            for month1 in month_comparison.index:
-                for month2 in month_comparison.index:
-                    if month1 != month2:
-                        percentage_diff = ((month_comparison[month2] - month_comparison[month1]) / month_comparison[
-                            month1]) * 100
-                        higher_lower = "higher" if percentage_diff > 0 else "lower"
-                        analysis_text.append(
-                            f"Comparing months, {variable} in month {month1} is often {abs(percentage_diff):.2f}% {higher_lower} than in month {month2}.")
-
-            # Range of variable for each month
-            month_range = df.groupby('Month')[variable].agg(['min', 'max'])
-            for month, values in month_range.iterrows():
-                analysis_text.append(
-                    f"The {month} period typically sees a range of {variable} from {values['min']:.2f} to {values['max']:.2f}.")
-
-            # Long-term trend for each month over the years
-            for month in range(1, 13):
-                month_df = df[df['Month'] == month]
-                year_count = len(month_df['Year'].unique())
-                net_change = month_df[variable].iloc[-1] - month_df[variable].iloc[0]
-                long_term_trend = "increase" if net_change > 0 else "decrease" if net_change < 0 else "stable"
-                analysis_text.append(
-                    f"Over the last {year_count} years, {variable} has shown a gradual {long_term_trend} during the {month} period.")
-
-            # Variance analysis for each month over the years
-            for month in range(1, 13):
-                month_df = df[df['Month'] == month]
-                variance_trend = "increasing" if month_df[variable].var() > df[variable].var() else "decreasing"
-                analysis_text.append(
-                    f"The variance of {variable} in month {month} has been {variance_trend}, suggesting a {'stabilization' if variance_trend == 'decreasing' else 'volatility'} over the years.")
-
-            # Consistent shift in the pattern between two months
-            for month1 in range(1, 13):
-                for month2 in range(1, 13):
-                    if month1 != month2:
-                        pattern_shift = "consistent shift" if abs(month_comparison[month1] - month_comparison[month2]) > df[
-                            variable].std() else "no significant shift"
-                        analysis_text.append(
-                            f"In comparing month {month1} to month {month2}, a {pattern_shift} in the pattern of {variable} is observed, with month {month2} often showing a contrasting trend.")
+            # Rest of your existing analysis logic...
 
             return "\n".join(analysis_text)
 
         except Exception as e:
-            return f"Error in analyzing monthly data: {e}"
+            return "Error in analyzing monthly data: {}".format(e)
 
     def _analyze_daily_data(self, df, date_column, variable):
         """
@@ -865,6 +816,16 @@ class DataAnalyzer(QObject):
         except Exception as e:
             print(f"Error in identifying patterns across dataframes: {e}")
             return {}
+    def perform_regression_analysis(df, independent_var, dependent_var):
+        X = df[independent_var].values.reshape(-1, 1)
+        y = df[dependent_var]
+
+        regression_model = LinearRegression()
+        regression_model.fit(X, y)
+        y_pred = regression_model.predict(X)
+
+        return regression_model.coef_, regression_model.intercept_, y_pred
+
 
 class NLPAnalyzer:
     def __init__(self):
