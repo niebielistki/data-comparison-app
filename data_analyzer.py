@@ -498,7 +498,7 @@ class DataAnalyzer(QObject):
         analysis_text.append(f'- Duplicate Data: {duplicate_text}')
 
         # Invalid Data
-        # TODO: This should be adjusted based on the specific requirements of what constitutes 'invalid' data in your dataset
+        # This should be adjusted based on the specific requirements of what constitutes 'invalid' data in your dataset
         for column in df.select_dtypes(include=[np.number]).columns:
             invalid_data = df[df[column] < 0]
             if not invalid_data.empty:
@@ -720,15 +720,6 @@ class DataAnalyzer(QObject):
                     selected_columns.add(col)
         return list(selected_columns)  # Convert back to a list for consistency
 
-    def perform_basic_nlp_analysis(self, data_frames, columns):
-        """
-        Performs basic NLP analysis like keyword extraction or topic modeling.
-        """
-        # Placeholder for NLP analysis logic
-        nlp_results = {}
-        # Logic to perform NLP analysis on specified columns
-        return nlp_results
-
     def perform_data_comparison(self, data_frames, selected_columns):
         """
         Compares data across selected columns to identify correlations, commonalities, or anomalies.
@@ -882,3 +873,12 @@ class NLPAnalyzer:
 
     def analyze_sentiment(text):
         return sia.polarity_scores(text)
+
+    def perform_basic_nlp_analysis(self, data_frames, columns):
+        """
+        Performs basic NLP analysis like keyword extraction or topic modeling.
+        """
+        # Placeholder for NLP analysis logic
+        nlp_results = {}
+        # Logic to perform NLP analysis on specified columns
+        return nlp_results
