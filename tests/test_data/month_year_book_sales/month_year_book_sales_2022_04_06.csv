@@ -1,0 +1,19 @@
+Year,Month,Genre,Sales,Average Price,Best Seller
+2022,04,Fantasy,7923,24.38,BestSeller_Fan_04_2022
+2022,04,Science Fiction,5143,26.27,BestSeller_Sci_04_2022
+2022,04,Mystery,364,20.52,BestSeller_Mys_04_2022
+2022,04,Romance,4606,29.56,BestSeller_Rom_04_2022
+2022,04,Horror,7837,7.94,BestSeller_Hor_04_2022
+2022,04,Historical,4323,10.2,BestSeller_His_04_2022
+2022,05,Fantasy,6339,12.53,BestSeller_Fan_05_2022
+2022,05,Science Fiction,9479,19.94,BestSeller_Sci_05_2022
+2022,05,Mystery,7428,11.83,BestSeller_Mys_05_2022
+2022,05,Romance,1999,9.42,BestSeller_Rom_05_2022
+2022,05,Horror,7764,14.79,BestSeller_Hor_05_2022
+2022,05,Historical,6555,29.36,BestSeller_His_05_2022
+2022,06,Fantasy,8255,10.57,BestSeller_Fan_06_2022
+2022,06,Science Fiction,234,11.6,BestSeller_Sci_06_2022
+2022,06,Mystery,4638,17.61,BestSeller_Mys_06_2022
+2022,06,Romance,1952,26.07,BestSeller_Rom_06_2022
+2022,06,Horror,5354,7.5,BestSeller_Hor_06_2022
+2022,06,Historical,3778,26.17,BestSeller_His_06_2022

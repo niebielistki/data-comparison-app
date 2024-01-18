@@ -1,0 +1,11 @@
+Date,PetName,Breed,DiseaseName,ProposedTreatment,CostOfTreatment,OwnerName,OwnerContact,FollowUpRequired,MedicationPrescribed,VetName
+2022-01-03,Pet_1,Dog,Disease_1,Treatment_1,774.0,Owner_1,Contact_1,True,Medication_1,Vet_1
+2022-01-18,Pet_2,Cat,Disease_2,Treatment_2,885.0,Owner_2,Contact_2,True,Medication_2,Vet_2
+2022-01-07,Pet_3,Bird,Disease_3,Treatment_3,312.0,Owner_3,Contact_3,False,Medication_3,Vet_3
+2022-01-03,Pet_4,Dog,Disease_4,Treatment_4,910.0,Owner_4,Contact_4,True,Medication_4,Vet_4
+2022-01-28,Pet_5,Rabbit,Disease_5,Treatment_5,769.0,Owner_5,Contact_5,False,Medication_5,Vet_5
+2022-01-27,Pet_6,Cat,Disease_6,Treatment_6,524.0,Owner_6,Contact_6,True,Medication_6,Vet_6
+2022-01-19,Pet_7,Cat,Disease_7,Treatment_7,330.0,Owner_7,Contact_7,True,Medication_7,Vet_7
+2022-01-23,Pet_8,Cat,Disease_8,Treatment_8,864.0,Owner_8,Contact_8,True,Medication_8,Vet_8
+2022-01-06,Pet_9,Rabbit,Disease_9,Treatment_9,517.0,Owner_9,Contact_9,True,Medication_9,Vet_9
+2022-01-01,Pet_10,Bird,Disease_10,Treatment_10,,Owner_10,Contact_10,False,Medication_10,Vet_10

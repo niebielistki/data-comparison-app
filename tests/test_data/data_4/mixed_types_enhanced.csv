@@ -1,0 +1,6 @@
+Item,Quantity,Price,Available,Color
+Item1,50,19.99,True,Red
+Item2,Sixty,29.99,False,Blue
+Item3,70,39.99,True,Green
+Item4,Eighty,49.99,False,Yellow
+Item5,90,59.99,True,Black

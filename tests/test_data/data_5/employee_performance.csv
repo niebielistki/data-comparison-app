@@ -1,0 +1,11 @@
+Identifier,Category,Value,StartDate,EndDate,Status,Region,Manager,Budget,TeamSize
+Emp_1,Role_1,1,2021-01-31,2021-10-31,Probation,East,Manager_2,3000,3
+Emp_2,Role_2,2,2021-02-28,2021-11-30,Probation,West,Manager_3,4000,4
+Emp_3,Role_3,3,2021-03-31,2021-12-31,Probation,North,Manager_4,5000,5
+Emp_4,Role_4,4,2021-04-30,2022-01-31,Probation,South,Manager_5,6000,6
+Emp_5,Role_5,5,2021-05-31,2022-02-28,Probation,Central,Manager_1,7000,7
+Emp_6,Role_6,6,2021-06-30,2022-03-31,Permanent,East,Manager_2,8000,3
+Emp_7,Role_7,7,2021-07-31,2022-04-30,Permanent,West,Manager_3,9000,4
+Emp_8,Role_8,8,2021-08-31,2022-05-31,Permanent,North,Manager_4,10000,5
+Emp_9,Role_9,9,2021-09-30,2022-06-30,Permanent,South,Manager_5,11000,6
+Emp_10,Role_10,10,2021-10-31,2022-07-31,Permanent,Central,Manager_1,12000,7

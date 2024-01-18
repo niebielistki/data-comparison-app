@@ -1,0 +1,11 @@
+Identifier,Category,Value,StartDate,EndDate,Status,Region,Manager,Budget,TeamSize
+Proj_1,Cat_1,10000,2021-01-31,2021-10-31,Active,North,Manager_1,5000,5
+Proj_2,Cat_2,11000,2021-02-28,2021-11-30,Active,South,Manager_2,6000,6
+Proj_3,Cat_3,12000,2021-03-31,2021-12-31,Active,East,Manager_3,7000,7
+Proj_4,Cat_4,13000,2021-04-30,2022-01-31,Active,West,Manager_4,8000,8
+Proj_5,Cat_5,14000,2021-05-31,2022-02-28,Active,Central,Manager_5,9000,9
+Proj_6,Cat_6,15000,2021-06-30,2022-03-31,Completed,North,Manager_6,10000,10
+Proj_7,Cat_7,16000,2021-07-31,2022-04-30,Completed,South,Manager_7,11000,11
+Proj_8,Cat_8,17000,2021-08-31,2022-05-31,Completed,East,Manager_8,12000,12
+Proj_9,Cat_9,18000,2021-09-30,2022-06-30,Completed,West,Manager_9,13000,13
+Proj_10,Cat_10,19000,2021-10-31,2022-07-31,Completed,Central,Manager_10,14000,14

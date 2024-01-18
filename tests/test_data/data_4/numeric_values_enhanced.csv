@@ -1,0 +1,6 @@
+Identifier,Value,Category,InStock,Discount
+101,1000,A,True,0.1
+102,2000,B,False,0.15
+103,3000,A,True,0.2
+104,4000,B,True,0.0
+105,5000,C,False,0.05

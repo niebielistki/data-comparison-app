@@ -1,0 +1,19 @@
+Month,Genre,Sales,Average Price,Best Seller
+2021-01,Fantasy,1083,15.97,BestSeller_Fan_01_2021
+2021-01,Science Fiction,5038,24.51,BestSeller_Sci_01_2021
+2021-01,Mystery,8468,5.14,BestSeller_Mys_01_2021
+2021-01,Romance,4191,6.33,BestSeller_Rom_01_2021
+2021-01,Horror,6835,27.03,BestSeller_Hor_01_2021
+2021-01,Historical,8459,16.57,BestSeller_His_01_2021
+2021-02,Fantasy,3927,25.36,BestSeller_Fan_02_2021
+2021-02,Science Fiction,9685,10.88,BestSeller_Sci_02_2021
+2021-02,Mystery,935,27.54,BestSeller_Mys_02_2021
+2021-02,Romance,7712,6.84,BestSeller_Rom_02_2021
+2021-02,Horror,3477,25.6,BestSeller_Hor_02_2021
+2021-02,Historical,8160,24.26,BestSeller_His_02_2021
+2021-03,Fantasy,7364,6.11,BestSeller_Fan_03_2021
+2021-03,Science Fiction,6173,25.25,BestSeller_Sci_03_2021
+2021-03,Mystery,2770,19.83,BestSeller_Mys_03_2021
+2021-03,Romance,5877,21.03,BestSeller_Rom_03_2021
+2021-03,Horror,1740,21.53,BestSeller_Hor_03_2021
+2021-03,Historical,5391,7.95,BestSeller_His_03_2021
