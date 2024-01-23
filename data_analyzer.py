@@ -815,18 +815,44 @@ class DataAnalyzer(QObject):
 class NLPAnalyzer:
     def __init__(self):
         nltk.download('vader_lexicon')
+        nltk.download('punkt')
+        nltk.download('stopwords')
         self.sia = SentimentIntensityAnalyzer()
 
     def analyze_sentiment(self, text):
+        """
+        Analyzes the sentiment of a given text.
+        """
         return self.sia.polarity_scores(text)
+
+    def extract_keywords(self, text, num_keywords=10):
+        """
+        Extracts and returns the most frequent keywords from a given text.
+        """
+        # Tokenize the text
+        tokens = word_tokenize(text)
+
+        # Remove punctuation and convert to lower case
+        tokens = [word.lower() for word in tokens if word.isalpha()]
+
+        # Remove stopwords
+        stop_words = set(stopwords.words('english'))
+        filtered_tokens = [word for word in tokens if word not in stop_words]
+
+        # Get frequency distribution of the tokens
+        freq_dist = FreqDist(filtered_tokens)
+
+        # Get the most common words
+        keywords = [word for word, freq in freq_dist.most_common(num_keywords)]
+
+        return keywords
 
     def perform_basic_nlp_analysis(self, data_frames, columns):
         """
-        Performs basic NLP analysis like keyword extraction or topic modeling.
+        Placeholder for more advanced NLP analysis.
         """
         nlp_results = {}
-
-        # Add logic for basic NLP tasks here
+        # Add logic for advanced NLP tasks here
         return nlp_results
 
     # Potential additional methods for tokenization, POS tagging, NER, etc.
