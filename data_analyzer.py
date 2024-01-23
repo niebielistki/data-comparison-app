@@ -8,9 +8,14 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from collections import defaultdict
 import numpy as np
 import traceback
+from sklearn.linear_model import LinearRegression
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
-from sklearn.linear_model import LinearRegression
+from nltk.tokenize import word_tokenize
+from nltk.probability import FreqDist
+from nltk.corpus import stopwords
+import string
+
 
 
 class DataAnalyzer(QObject):
@@ -226,14 +231,21 @@ class DataAnalyzer(QObject):
         :return: Textual analysis for yearly data.
         """
         if variable not in df.columns:
-            return f"No data for variable '{variable}' to analyze."
+            return "No data for variable '{}' to analyze.".format(variable)
 
         try:
+            # Ensure year_column is in datetime format and set it as index
+            df[year_column] = pd.to_datetime(df[year_column], format='%Y', errors='coerce')
+            df.set_index(year_column, inplace=True)
+
             # Sort by year and calculate differences
             df_sorted = df.sort_values(by=year_column)
             df_sorted['yearly_change'] = df_sorted[variable].diff()
-            start_year = df_sorted[year_column].min()
-            end_year = df_sorted[year_column].max()
+
+            # Volatility calculation over a rolling 12-month period
+            df_sorted['yearly_volatility'] = df_sorted[variable].rolling('365D').std()
+            most_volatile_year = df_sorted['yearly_volatility'].idxmax().year
+            least_volatile_year = df_sorted['yearly_volatility'].idxmin().year
 
             # Calculate the net change
             net_change = df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0]
@@ -255,25 +267,24 @@ class DataAnalyzer(QObject):
             current_value = df_sorted[variable].iloc[-1]
             anomaly = current_value > df_sorted['cumulative_average'].iloc[-2]
 
-            # Building the analysis text
-            analysis_text = (
-                f"Time Series Analysis - Yearly Analysis:"
-                f"A comparison from {start_year} to {end_year} shows {variable} {fluctuation}, "
-                f"with a net change of {net_change}.\n"
-                f"Year-over-year, {variable} demonstrated a {trend} trend.\n"
-                f"The year {current_year} marked a significant {'increase' if anomaly else 'decrease'} in {variable}, "
-                f"deviating from previous trends.\n"
-                f"The largest year-on-year change in {variable} was between {max_change_years[0]} and "
-                f"{max_change_years[1]}, showing a {max_change_percentage:.2f}% difference.\n"
-                f"The cumulative change in {variable} over the last {end_year - start_year} years was {net_change}, "
-                f"indicating a long-term {trend}.\n"
-                f"An {alternating_pattern} pattern of {trend} in {variable} was noted every alternate year "
-                f"from {start_year} to {end_year}.\n"
-                f"The {variable} in {current_year} was surprisingly {'higher' if anomaly else 'lower'} "
-                f"than the preceding years' average, marking an anomaly."
-            )
+            # Prepare data for template-based analysis
+            analysis_data = {
+                'start_year': start_year,
+                'end_year': end_year,
+                'net_change': net_change,
+                # ... [other data points] ...
+            }
 
-            return analysis_text
+            # Get the appropriate analysis templates
+            analysis_templates = self.get_analysis_templates('yearly', 'numeric')
+
+            # Use the templates to build the analysis text
+            analysis_text = [template.format(**analysis_data) for template in analysis_templates]
+
+            # Add volatility analysis
+            # ... [volatility analysis code] ...
+
+            return "\n".join(analysis_text)
 
         except Exception as e:
             return f"Error in analyzing yearly data: {e}"
@@ -298,16 +309,36 @@ class DataAnalyzer(QObject):
             df['Year'] = df[month_column].dt.year
             df.set_index(month_column, inplace=True)
 
-            analysis_text = ["Time Series Analysis - Monthly Analysis:"]
-
             # Calculate and append volatility analysis
             df['monthly_volatility'] = df[variable].rolling('30D').std()
             most_volatile_month = df['monthly_volatility'].idxmax()
             least_volatile_month = df['monthly_volatility'].idxmin()
-            analysis_text.append("The most volatile month was {}, while the least volatile was {}.".format(
-                most_volatile_month.strftime('%Y-%m'), least_volatile_month.strftime('%Y-%m')))
 
-            # Rest of your existing analysis logic...
+            # Prepare data for template-based analysis
+            analysis_data = {
+                'most_volatile_month': most_volatile_month.strftime('%Y-%m'),
+                'least_volatile_month': least_volatile_month.strftime('%Y-%m'),
+                # Additional data points required for the templates
+                'month': df.index.month_name().unique()[0],  # Assumes analysis is for a specific month
+                'variable': variable,
+                'rise_drop': 'rise' if df[variable].diff().mean() > 0 else 'drop',
+                'highest_value': df[variable].max(),
+                'lowest_value': df[variable].min(),
+                'average_value': df[variable].mean(),
+                'percentage_change': df[variable].pct_change().mean() * 100,  # Average percentage change
+                'increase_decrease': 'increase' if df[variable].diff().mean() > 0 else 'decrease',
+                'number_of_years': df['Year'].nunique(),
+                'trend': 'increasing' if df[variable].diff().mean() > 0 else 'decreasing',
+                'stabilization_volatility': 'stabilization' if df['monthly_volatility'].mean() < df[
+                    variable].std() else 'volatility',
+                # ... [any other specific data points required by your templates] ...
+            }
+
+            # Get the appropriate analysis templates
+            analysis_templates = self.get_analysis_templates('monthly', 'numeric')
+
+            # Use the templates to build the analysis text
+            analysis_text = [template.format(**analysis_data) for template in analysis_templates]
 
             return "\n".join(analysis_text)
 
@@ -315,13 +346,6 @@ class DataAnalyzer(QObject):
             return "Error in analyzing monthly data: {}".format(e)
 
     def _analyze_daily_data(self, df, date_column, variable):
-        """
-        Analyzes daily data for a given variable.
-        :param df: DataFrame containing the data.
-        :param date_column: Column name with date data.
-        :param variable: The variable to be analyzed.
-        :return: Textual analysis for daily data.
-        """
         if variable not in df.columns:
             return f"No data for variable '{variable}' to analyze."
 
@@ -331,80 +355,41 @@ class DataAnalyzer(QObject):
                 return "Invalid or missing date data. Cannot perform analysis."
 
             df = df.sort_values(by=date_column)
-            analysis_text = ["Time Series Analysis - Date Analysis:"]
 
-            # Record-breaking value
-            record_value = df[variable].max()
-            record_date = df[df[variable] == record_value][date_column].dt.strftime('%Y-%m-%d').iloc[0]
-            analysis_text.append(f"On {record_date}, a record-breaking {variable} value of {record_value} was observed.")
+            # Prepare data for analysis template
+            analysis_data = {
+                'specific_date': df[date_column].max().strftime('%Y-%m-%d'),  # Example for template
+                'start_date': df[date_column].min().strftime('%Y-%m-%d'),
+                'end_date': df[date_column].max().strftime('%Y-%m-%d'),
+                'variable': variable,
+                'record_value': df[variable].max(),
+                'record_date': df[df[variable] == df[variable].max()][date_column].dt.strftime('%Y-%m-%d').iloc[0],
+                'max_change': df[variable].diff().abs().max(),
+                'shift_start_date':
+                    df[df[variable].diff().abs() == df[variable].diff().abs().max()][date_column].dt.strftime(
+                        '%Y-%m-%d').iloc[0],
+                'shift_end_date': (df[df[variable].diff().abs() == df[variable].diff().abs().max()][
+                                       date_column] + pd.Timedelta(days=1)).dt.strftime('%Y-%m-%d').iloc[0],
+                'consecutive_increase': df[variable].diff().fillna(0) > 0,
+                'consecutive_decrease': df[variable].diff().fillna(0) < 0,
+                'rolling_volatility': df[variable].rolling('7D').std(),  # 7-day rolling window for volatility
+                'most_volatile_date': df['rolling_volatility'].idxmax().strftime('%Y-%m-%d'),
+                'least_volatile_date': df['rolling_volatility'].idxmin().strftime('%Y-%m-%d'),
+                'highest_volatility_value': df['rolling_volatility'].max()
+                # ... [additional data points] ...
+            }
 
-            # Notable shift in variable
-            df['daily_change'] = df[variable].diff()
-            max_change = df['daily_change'].abs().max()
-            shift_start_date = df[df['daily_change'].abs() == max_change][date_column].dt.strftime('%Y-%m-%d').iloc[0]
-            shift_end_date = \
-            (df[df[date_column] == shift_start_date][date_column] + pd.Timedelta(days=1)).dt.strftime('%Y-%m-%d').iloc[0]
-            analysis_text.append(
-                f"There was a notable shift in {variable} starting from {shift_start_date}, persisting until {shift_end_date}.")
+            # Calculate volatility and add to analysis_data
+            df['daily_volatility'] = df[variable].rolling('7D').std()
+            analysis_data['most_volatile_date'] = df['daily_volatility'].idxmax().strftime('%Y-%m-%d')
+            analysis_data['least_volatile_date'] = df['daily_volatility'].idxmin().strftime('%Y-%m-%d')
+            analysis_data['highest_volatility_value'] = df['daily_volatility'].max()
 
-            # Consecutive days trend
-            consecutive_increase = df[variable].diff().fillna(0) > 0
-            consecutive_decrease = df[variable].diff().fillna(0) < 0
+            # Get the appropriate analysis templates for daily numeric data
+            analysis_templates = self.get_analysis_templates('daily', 'numeric')
 
-            start_date = df[date_column].min().strftime('%Y-%m-%d')
-            end_date = df[date_column].max().strftime('%Y-%m-%d')
-            trend = "increase" if consecutive_increase.all() else "decrease" if consecutive_decrease.all() else "mixed"
-            analysis_text.append(
-                f"Consecutive days from {start_date} to {end_date} showed a consistent {trend} in {variable}.")
-
-            # Period of most volatility
-            # Assuming volatility is measured by the standard deviation of daily changes
-            rolling_volatility = df[variable].rolling('7D').std()  # 7-day rolling window
-            most_volatile_period_start = rolling_volatility.idxmax()
-            most_volatile_value = rolling_volatility.max()
-            analysis_text.append(
-                f"The period around {most_volatile_period_start.strftime('%Y-%m-%d')} witnessed the most volatility in {variable}, with daily changes of up to {most_volatile_value:.2f}.")
-
-            # Pattern of peaking
-            # This could be a complex analysis depending on how you define 'peaking'.
-            # For simplicity, let's consider the top 5% values as peaks.
-            peak_threshold = df[variable].quantile(0.95)
-            peak_dates = df[df[variable] >= peak_threshold][date_column].dt.strftime('%Y-%m-%d').tolist()
-            peak_dates_str = ", ".join(peak_dates)
-            analysis_text.append(f"A pattern emerged where {variable} consistently peaked around {peak_dates_str}.")
-
-            # Unexpected spike or drop
-            # Considering a spike/drop as a change beyond one standard deviation from the mean
-            std_dev = df[variable].std()
-            mean_val = df[variable]
-            spike_threshold_upper = mean_val + std_dev
-            spike_threshold_lower = mean_val - std_dev
-
-            spikes = df[(df[variable] > spike_threshold_upper) | (df[variable] < spike_threshold_lower)]
-            spike_dates = spikes[date_column].dt.strftime('%Y-%m-%d').tolist()
-            spike_dates_str = ", ".join(spike_dates)
-            analysis_text.append(
-                f"The {variable} showed unexpected spikes or drops on {spike_dates_str}, deviating significantly from the monthly average.")
-
-            # Week-to-week analysis
-            # Assuming the data is daily and spans multiple weeks
-            df['Week'] = df[date_column].dt.isocalendar().week
-            weekly_trend = df.groupby('Week')[variable].mean().diff().fillna(0)
-            weekly_increase_decrease = weekly_trend.apply(
-                lambda x: 'increase' if x > 0 else 'decrease' if x < 0 else 'stable')
-            weekly_trend_text = weekly_increase_decrease.apply(
-                lambda x, y: f"week {x} to week {x + 1} reveals a consistent {y} in {variable}",
-                args=(weekly_increase_decrease,))
-            analysis_text.extend(weekly_trend_text.tolist())
-
-            # Sudden change observation
-            # This could be a single-day event or a sharp change over a short period
-            sudden_changes = df[
-                df['daily_change'].abs() > (2 * std_dev)]  # Using 2 standard deviations for a sharper change
-            sudden_change_dates = sudden_changes[date_column].dt.strftime('%Y-%m-%d').tolist()
-            sudden_change_dates_str = ", ".join(sudden_change_dates)
-            analysis_text.append(
-                f"A sudden change in {variable} was observed around {sudden_change_dates_str}, marking a distinct shift from the established pattern.")
+            # Use the templates to build the analysis text
+            analysis_text = [template.format(**analysis_data) for template in analysis_templates]
 
             return "\n".join(analysis_text)
         except Exception as e:
@@ -832,14 +817,16 @@ class NLPAnalyzer:
         nltk.download('vader_lexicon')
         self.sia = SentimentIntensityAnalyzer()
 
-    def analyze_sentiment(text):
-        return sia.polarity_scores(text)
+    def analyze_sentiment(self, text):
+        return self.sia.polarity_scores(text)
 
     def perform_basic_nlp_analysis(self, data_frames, columns):
         """
         Performs basic NLP analysis like keyword extraction or topic modeling.
         """
-        # Placeholder for NLP analysis logic
         nlp_results = {}
-        # Logic to perform NLP analysis on specified columns
+
+        # Add logic for basic NLP tasks here
         return nlp_results
+
+    # Potential additional methods for tokenization, POS tagging, NER, etc.
