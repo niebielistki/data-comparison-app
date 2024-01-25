@@ -18,6 +18,114 @@ from nltk.corpus import stopwords
 import string
 
 
+class AnalysisUtilities:
+    @staticmethod
+    def detect_trend(data_series):
+        """
+        Detects the trend in a data series using linear regression.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: String indicating the trend ('increasing', 'decreasing', or 'stable').
+        """
+        x = range(len(data_series))
+        slope, _, _, _, _ = linregress(x, data_series)
+        if slope > 0:
+            return "increasing"
+        elif slope < 0:
+            return "decreasing"
+        else:
+            return "stable"
+
+    @staticmethod
+    def calculate_volatility(data_series, window=30):
+        """
+        Calculates the volatility of a data series over a specified window.
+
+        :param data_series: Pandas Series, a series of data points.
+        :param window: Integer, the size of the rolling window to calculate volatility.
+        :return: Pandas Series, the volatility of the data series.
+        """
+        return data_series.rolling(window=window).std()
+
+    @staticmethod
+    def calculate_mean(data_series):
+        """
+        Calculates the mean of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the mean of the data series.
+        """
+        return data_series.mean()
+
+    @staticmethod
+    def calculate_median(data_series):
+        """
+        Calculates the median of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the median of the data series.
+        """
+        return data_series.median()
+
+    @staticmethod
+    def calculate_mode(data_series):
+        """
+        Calculates the mode of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Pandas Series, the mode(s) of the data series.
+        """
+        return data_series.mode()
+
+    @staticmethod
+    def calculate_variance(data_series):
+        """
+        Calculates the variance of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the variance of the data series.
+        """
+        return data_series.var()
+
+    @staticmethod
+    def calculate_std_dev(data_series):
+        """
+        Calculates the standard deviation of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the standard deviation of the data series.
+        """
+        return data_series.std()
+
+    @staticmethod
+    def assess_missing_data(data_frame):
+        """
+        Assesses the missing data in a DataFrame.
+
+        :param data_frame: Pandas DataFrame, the DataFrame to assess for missing data.
+        :return: Two Pandas Series, the count and percentage of missing data for columns with missing values.
+        """
+        missing_data = data_frame.isnull().sum()
+        total_data = len(data_frame)
+        missing_percentage = (missing_data / total_data) * 100
+        return missing_data[missing_data > 0].sort_values(ascending=False), missing_percentage[
+            missing_percentage > 0].sort_values(ascending=False)
+
+    @staticmethod
+    def detect_outliers(data_series):
+        """
+        Detects outliers in a data series using the Interquartile Range (IQR) method.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Pandas Series, the outliers in the data series.
+        """
+        Q1 = data_series.quantile(0.25)
+        Q3 = data_series.quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        return data_series[(data_series < lower_bound) | (data_series > upper_bound)]
+
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
 
@@ -158,7 +266,7 @@ class DataAnalyzer(QObject):
 
     # Function for Time Series Analysis
     def analyze_time_series(self, data_frames, time_series_priority=None):
-        analysis_results = []
+        analysis_results = [{"title": "Time Series Analysis", "content": ""}]
 
         # If a priority is given, use it. Otherwise, determine it based on data
         if not time_series_priority:
@@ -179,20 +287,25 @@ class DataAnalyzer(QObject):
             for time_type in time_priority:
                 column_name = time_columns.get(time_type)
                 if column_name and analysis_variable:
+                    analysis_result = {"title": f"{time_type} Analysis", "content": ""}
+                    print(f"Time type: {time_type}, Column name: {column_name}, Analysis variable: {analysis_variable}")
+
+                    # Call the analysis method and store the result in 'content'
                     if time_type == 'Year':
-                        analysis_results.append(self._analyze_yearly_data(df, column_name, analysis_variable))
+                        analysis_result["content"] = self._analyze_yearly_data(df, column_name, analysis_variable)
                     elif time_type == 'Month':
-                        analysis_results.append(self._analyze_monthly_data(df, column_name, analysis_variable))
+                        analysis_result["content"] = self._analyze_monthly_data(df, column_name, analysis_variable)
                     elif time_type == 'Date':
-                        analysis_results.append(self._analyze_daily_data(df, column_name, analysis_variable))
+                        analysis_result["content"] = self._analyze_daily_data(df, column_name, analysis_variable)
+
+                    analysis_results.append(analysis_result)
 
             # Append results from data cleaning tools and descriptive statistics
-            analysis_results.append(self.perform_data_cleaning_analysis(df))
-            descriptive_stats = self.calculate_descriptive_statistics(df)
-            if not descriptive_stats.empty:
-                analysis_results.append(descriptive_stats.to_string(index=False))
-
-        return "\n\n".join(analysis_results)
+            # analysis_results.append(self.perform_data_cleaning_analysis(df))
+            # descriptive_stats = self.calculate_descriptive_statistics(df)
+            # if not descriptive_stats.empty:
+                # analysis_results.append(descriptive_stats.to_string(index=False))
+        return analysis_results
 
     # Helper function for analyze_time_series
     def detect_time_columns(self, data_frames):
@@ -205,11 +318,12 @@ class DataAnalyzer(QObject):
         for _, df in data_frames.items():  # Explicitly iterate over dictionary items
             if isinstance(df, pd.DataFrame):  # Check if each item is a DataFrame
                 for col in df.columns:
-                    if col.lower() in ['year', 'years']:
+                    col_lower = col.lower()
+                    if 'year' in col_lower:
                         time_columns['Year'][col] += 1
-                    elif col.lower() in ['month', 'months']:
+                    elif 'month' in col_lower:
                         time_columns['Month'][col] += 1
-                    elif col.lower() in ['date', 'dates']:
+                    elif 'date' in col_lower:
                         time_columns['Date'][col] += 1
 
         # Summarizing results to get the most common column for each time type
@@ -237,6 +351,8 @@ class DataAnalyzer(QObject):
         :param variable: The variable to be analyzed, expected to be a numerical column.
         :return: Textual analysis for yearly data.
         """
+        analysis_text = ["Yearly Analysis."]  # Start with header
+
         if variable not in df.columns:
             return f"No data for variable '{variable}' to analyze."
 
@@ -271,7 +387,9 @@ class DataAnalyzer(QObject):
             analysis_templates = self.get_analysis_templates('yearly', 'numeric')
             analysis_text = [template.format(**analysis_data) for template in analysis_templates]
 
-            return "\n".join(analysis_text)
+            final_analysis = "\n".join(analysis_text)
+            return final_analysis
+
         except Exception as e:
             return f"Error in analyzing yearly data: {str(e)}"
 
@@ -796,173 +914,6 @@ class DataAnalyzer(QObject):
         y_pred = regression_model.predict(X)
 
         return regression_model.coef_, regression_model.intercept_, y_pred
-
-
-class NLPAnalyzer:
-    def __init__(self):
-        nltk.download('vader_lexicon')
-        nltk.download('punkt')
-        nltk.download('stopwords')
-        self.sia = SentimentIntensityAnalyzer()
-
-    def extract_keywords(self, text, num_keywords=10):
-        """
-        Extracts and returns the most frequent keywords from a given text.
-        """
-        # Tokenize the text
-        tokens = word_tokenize(text)
-
-        # Remove punctuation and convert to lower case
-        tokens = [word.lower() for word in tokens if word.isalpha()]
-
-        # Remove stopwords
-        stop_words = set(stopwords.words('english'))
-        filtered_tokens = [word for word in tokens if word not in stop_words]
-
-        # Get frequency distribution of the tokens
-        freq_dist = FreqDist(filtered_tokens)
-
-        # Get the most common words
-        keywords = [word for word, freq in freq_dist.most_common(num_keywords)]
-
-        return keywords
-
-    def categorize_text(self, text, categories):
-        """
-        Categorizes a given text into predefined categories based on keywords.
-
-        :param text: The text to categorize.
-        :param categories: A dictionary where keys are category names and values are lists of keywords associated with each category.
-        :return: A list of categories the text falls into.
-        """
-        categorized_result = []
-        tokens = word_tokenize(text.lower())  # Tokenize and convert to lower case for comparison
-
-        for category, keywords in categories.items():
-            if any(keyword in tokens for keyword in keywords):
-                categorized_result.append(category)
-
-        return categorized_result
-
-    def perform_basic_nlp_analysis(self, data_frames, columns):
-        """
-        Placeholder for more advanced NLP analysis.
-        """
-        nlp_results = {}
-        # Add logic for advanced NLP tasks here
-        return nlp_results
-
-    # Potential additional methods for tokenization, POS tagging, NER, etc.
-
-
-class AnalysisUtilities:
-    @staticmethod
-    def detect_trend(data_series):
-        """
-        Detects the trend in a data series using linear regression.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: String indicating the trend ('increasing', 'decreasing', or 'stable').
-        """
-        x = range(len(data_series))
-        slope, _, _, _, _ = linregress(x, data_series)
-        if slope > 0:
-            return "increasing"
-        elif slope < 0:
-            return "decreasing"
-        else:
-            return "stable"
-
-    @staticmethod
-    def calculate_volatility(data_series, window=30):
-        """
-        Calculates the volatility of a data series over a specified window.
-
-        :param data_series: Pandas Series, a series of data points.
-        :param window: Integer, the size of the rolling window to calculate volatility.
-        :return: Pandas Series, the volatility of the data series.
-        """
-        return data_series.rolling(window=window).std()
-
-    @staticmethod
-    def calculate_mean(data_series):
-        """
-        Calculates the mean of a data series.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: Float, the mean of the data series.
-        """
-        return data_series.mean()
-
-    @staticmethod
-    def calculate_median(data_series):
-        """
-        Calculates the median of a data series.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: Float, the median of the data series.
-        """
-        return data_series.median()
-
-    @staticmethod
-    def calculate_mode(data_series):
-        """
-        Calculates the mode of a data series.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: Pandas Series, the mode(s) of the data series.
-        """
-        return data_series.mode()
-
-    @staticmethod
-    def calculate_variance(data_series):
-        """
-        Calculates the variance of a data series.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: Float, the variance of the data series.
-        """
-        return data_series.var()
-
-    @staticmethod
-    def calculate_std_dev(data_series):
-        """
-        Calculates the standard deviation of a data series.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: Float, the standard deviation of the data series.
-        """
-        return data_series.std()
-
-    @staticmethod
-    def assess_missing_data(data_frame):
-        """
-        Assesses the missing data in a DataFrame.
-
-        :param data_frame: Pandas DataFrame, the DataFrame to assess for missing data.
-        :return: Two Pandas Series, the count and percentage of missing data for columns with missing values.
-        """
-        missing_data = data_frame.isnull().sum()
-        total_data = len(data_frame)
-        missing_percentage = (missing_data / total_data) * 100
-        return missing_data[missing_data > 0].sort_values(ascending=False), missing_percentage[
-            missing_percentage > 0].sort_values(ascending=False)
-
-    @staticmethod
-    def detect_outliers(data_series):
-        """
-        Detects outliers in a data series using the Interquartile Range (IQR) method.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: Pandas Series, the outliers in the data series.
-        """
-        Q1 = data_series.quantile(0.25)
-        Q3 = data_series.quantile(0.75)
-        IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
-        return data_series[(data_series < lower_bound) | (data_series > upper_bound)]
-
 
 
 
