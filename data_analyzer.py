@@ -300,11 +300,6 @@ class DataAnalyzer(QObject):
 
                     analysis_results.append(analysis_result)
 
-            # Append results from data cleaning tools and descriptive statistics
-            # analysis_results.append(self.perform_data_cleaning_analysis(df))
-            # descriptive_stats = self.calculate_descriptive_statistics(df)
-            # if not descriptive_stats.empty:
-                # analysis_results.append(descriptive_stats.to_string(index=False))
         return analysis_results
 
     # Helper function for analyze_time_series
@@ -647,7 +642,14 @@ class DataAnalyzer(QObject):
 
                 descriptive_stats_text = self.calculate_descriptive_statistics(df).to_string()
                 if descriptive_stats_text:
-                    textual_analysis_sections.append({'title': 'Descriptive Statistics', 'content': descriptive_stats_text})
+                    textual_analysis_sections.append(
+                        {'title': 'Descriptive Statistics', 'content': descriptive_stats_text})
+
+                # Time Series Analysis
+                time_series_analysis_text = self.analyze_time_series({file_path: df})
+                if time_series_analysis_text:
+                    textual_analysis_sections.append(
+                        {'title': 'Time Series Analysis', 'content': time_series_analysis_text})
 
                 # Process each column for numerical analysis
                 for column in df.columns:
@@ -658,7 +660,7 @@ class DataAnalyzer(QObject):
                         if not stats_df.empty:
                             numerical_analysis_results.append(stats_df)
 
-                # Detailed textual analysis
+                # Additional detailed textual analysis
                 detailed_textual_sections = self.perform_detailed_textual_analysis(df)
                 textual_analysis_sections.extend(detailed_textual_sections)
 
