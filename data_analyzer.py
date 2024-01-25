@@ -878,6 +878,12 @@ class NLPAnalyzer:
 class AnalysisUtilities:
     @staticmethod
     def detect_trend(data_series):
+        """
+        Detects the trend in a data series using linear regression.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: String indicating the trend ('increasing', 'decreasing', or 'stable').
+        """
         x = range(len(data_series))
         slope, _, _, _, _ = linregress(x, data_series)
         if slope > 0:
@@ -889,30 +895,73 @@ class AnalysisUtilities:
 
     @staticmethod
     def calculate_volatility(data_series, window=30):
+        """
+        Calculates the volatility of a data series over a specified window.
+
+        :param data_series: Pandas Series, a series of data points.
+        :param window: Integer, the size of the rolling window to calculate volatility.
+        :return: Pandas Series, the volatility of the data series.
+        """
         return data_series.rolling(window=window).std()
 
     @staticmethod
     def calculate_mean(data_series):
+        """
+        Calculates the mean of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the mean of the data series.
+        """
         return data_series.mean()
 
     @staticmethod
     def calculate_median(data_series):
+        """
+        Calculates the median of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the median of the data series.
+        """
         return data_series.median()
 
     @staticmethod
     def calculate_mode(data_series):
+        """
+        Calculates the mode of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Pandas Series, the mode(s) of the data series.
+        """
         return data_series.mode()
 
     @staticmethod
     def calculate_variance(data_series):
+        """
+        Calculates the variance of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the variance of the data series.
+        """
         return data_series.var()
 
     @staticmethod
     def calculate_std_dev(data_series):
+        """
+        Calculates the standard deviation of a data series.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the standard deviation of the data series.
+        """
         return data_series.std()
 
     @staticmethod
     def assess_missing_data(data_frame):
+        """
+        Assesses the missing data in a DataFrame.
+
+        :param data_frame: Pandas DataFrame, the DataFrame to assess for missing data.
+        :return: Two Pandas Series, the count and percentage of missing data for columns with missing values.
+        """
         missing_data = data_frame.isnull().sum()
         total_data = len(data_frame)
         missing_percentage = (missing_data / total_data) * 100
@@ -921,6 +970,12 @@ class AnalysisUtilities:
 
     @staticmethod
     def detect_outliers(data_series):
+        """
+        Detects outliers in a data series using the Interquartile Range (IQR) method.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Pandas Series, the outliers in the data series.
+        """
         Q1 = data_series.quantile(0.25)
         Q3 = data_series.quantile(0.75)
         IQR = Q3 - Q1
