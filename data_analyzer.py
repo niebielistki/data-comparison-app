@@ -819,12 +819,6 @@ class NLPAnalyzer:
         nltk.download('stopwords')
         self.sia = SentimentIntensityAnalyzer()
 
-    def analyze_sentiment(self, text):
-        """
-        Analyzes the sentiment of a given text.
-        """
-        return self.sia.polarity_scores(text)
-
     def extract_keywords(self, text, num_keywords=10):
         """
         Extracts and returns the most frequent keywords from a given text.
@@ -847,6 +841,23 @@ class NLPAnalyzer:
 
         return keywords
 
+    def categorize_text(self, text, categories):
+        """
+        Categorizes a given text into predefined categories based on keywords.
+
+        :param text: The text to categorize.
+        :param categories: A dictionary where keys are category names and values are lists of keywords associated with each category.
+        :return: A list of categories the text falls into.
+        """
+        categorized_result = []
+        tokens = word_tokenize(text.lower())  # Tokenize and convert to lower case for comparison
+
+        for category, keywords in categories.items():
+            if any(keyword in tokens for keyword in keywords):
+                categorized_result.append(category)
+
+        return categorized_result
+
     def perform_basic_nlp_analysis(self, data_frames, columns):
         """
         Placeholder for more advanced NLP analysis.
@@ -856,3 +867,7 @@ class NLPAnalyzer:
         return nlp_results
 
     # Potential additional methods for tokenization, POS tagging, NER, etc.
+
+
+class AnalysisUtilities:
+    pass  # Placeholder for utility methods
