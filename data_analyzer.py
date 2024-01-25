@@ -150,6 +150,12 @@ class DataAnalyzer(QObject):
             print(f"Missing placeholder value: {e}")
             return template
 
+
+    # Integrate with AnalysisUtilities class
+    def analyze_column_trend(self, column_data):
+        trend = AnalysisUtilities.detect_trend(column_data)
+        # Further logic to handle the trend result, possibly formatting it into a sentence for output
+
     # Function for Time Series Analysis
     def analyze_time_series(self, data_frames, time_series_priority=None):
         analysis_results = []
@@ -870,9 +876,6 @@ class NLPAnalyzer:
 
 
 class AnalysisUtilities:
-    # Placeholder for utility methods
-    pass
-
     @staticmethod
     def detect_trend(data_series):
         x = range(len(data_series))
