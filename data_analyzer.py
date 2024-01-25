@@ -910,13 +910,20 @@ class AnalysisUtilities:
 
     @staticmethod
     def assess_missing_data(data_frame):
-        # Returns columns with missing data and percentages
-        pass
+        missing_data = data_frame.isnull().sum()
+        total_data = len(data_frame)
+        missing_percentage = (missing_data / total_data) * 100
+        return missing_data[missing_data > 0].sort_values(ascending=False), missing_percentage[
+            missing_percentage > 0].sort_values(ascending=False)
 
     @staticmethod
     def detect_outliers(data_series):
-        # Implementation to detect outliers
-        pass
+        Q1 = data_series.quantile(0.25)
+        Q3 = data_series.quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        return data_series[(data_series < lower_bound) | (data_series > upper_bound)]
 
 
 
