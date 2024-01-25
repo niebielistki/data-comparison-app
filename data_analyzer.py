@@ -278,25 +278,28 @@ class DataAnalyzer(QObject):
 
         for file_name, df in data_frames.items():
             # Detect time columns with occurrence count
-            time_columns = self.detect_time_columns(df)
+            time_columns = self.detect_time_columns({file_name: df})
 
             # Priority is given to numerical columns for analysis
             analysis_variable = next((col for col in df.columns if df[col].dtype in [np.float64, np.int64]), None)
 
             # Perform analysis based on priority
             for time_type in time_priority:
-                column_name = time_columns.get(time_type)
+                column_name, _ = time_columns.get(time_type, (None, None))
                 if column_name and analysis_variable:
                     analysis_result = {"title": f"{time_type} Analysis", "content": ""}
                     print(f"Time type: {time_type}, Column name: {column_name}, Analysis variable: {analysis_variable}")
 
-                    # Call the analysis method and store the result in 'content'
-                    if time_type == 'Year':
-                        analysis_result["content"] = self._analyze_yearly_data(df, column_name, analysis_variable)
-                    elif time_type == 'Month':
-                        analysis_result["content"] = self._analyze_monthly_data(df, column_name, analysis_variable)
-                    elif time_type == 'Date':
-                        analysis_result["content"] = self._analyze_daily_data(df, column_name, analysis_variable)
+                    try:
+                        # Call the analysis method and store the result in 'content'
+                        if time_type == 'Year':
+                            analysis_result["content"] = self._analyze_yearly_data(df, column_name, analysis_variable)
+                        elif time_type == 'Month':
+                            analysis_result["content"] = self._analyze_monthly_data(df, column_name, analysis_variable)
+                        elif time_type == 'Date':
+                            analysis_result["content"] = self._analyze_daily_data(df, column_name, analysis_variable)
+                    except Exception as e:
+                        analysis_result["content"] = f"Error analyzing {time_type.lower()} data: {e}"
 
                     analysis_results.append(analysis_result)
 
