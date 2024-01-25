@@ -870,4 +870,55 @@ class NLPAnalyzer:
 
 
 class AnalysisUtilities:
-    pass  # Placeholder for utility methods
+    # Placeholder for utility methods
+    pass
+
+    @staticmethod
+    def detect_trend(data_series):
+        # Implementation of trend detection logic
+        pass
+
+    @staticmethod
+    def calculate_volatility(data_series, window=30):
+        # Implementation using rolling standard deviation
+        pass
+
+    @staticmethod
+    def calculate_mean(data_series):
+        return data_series.mean()
+
+    @staticmethod
+    def calculate_median(data_series):
+        return data_series.median()
+
+    @staticmethod
+    def calculate_mode(data_series):
+        return data_series.mode()
+
+    @staticmethod
+    def calculate_variance(data_series):
+        return data_series.var()
+
+    @staticmethod
+    def calculate_std_dev(data_series):
+        return data_series.std()
+
+    @staticmethod
+    def assess_missing_data(data_frame):
+        # Returns columns with missing data and percentages
+        pass
+
+    @staticmethod
+    def detect_outliers(data_series):
+        # Implementation to detect outliers
+        pass
+
+
+
+
+
+
+
+
+
+
