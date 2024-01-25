@@ -4,6 +4,7 @@
 import pandas as pd
 from csv_handler import CSVHandler
 from scipy.stats import pearsonr
+from scipy.stats import linregress
 from PyQt5.QtCore import QObject, pyqtSignal
 from collections import defaultdict
 import numpy as np
@@ -15,7 +16,6 @@ from nltk.tokenize import word_tokenize
 from nltk.probability import FreqDist
 from nltk.corpus import stopwords
 import string
-
 
 
 class DataAnalyzer(QObject):
@@ -875,13 +875,18 @@ class AnalysisUtilities:
 
     @staticmethod
     def detect_trend(data_series):
-        # Implementation of trend detection logic
-        pass
+        x = range(len(data_series))
+        slope, _, _, _, _ = linregress(x, data_series)
+        if slope > 0:
+            return "increasing"
+        elif slope < 0:
+            return "decreasing"
+        else:
+            return "stable"
 
     @staticmethod
     def calculate_volatility(data_series, window=30):
-        # Implementation using rolling standard deviation
-        pass
+        return data_series.rolling(window=window).std()
 
     @staticmethod
     def calculate_mean(data_series):
