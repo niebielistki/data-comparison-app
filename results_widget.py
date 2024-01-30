@@ -161,7 +161,16 @@ class ResultsWidget(QWidget):
 
         for section in results_sections:
             html_output += "<h2>{}</h2>".format(section['title'])
-            html_output += section['content']  # Assuming 'content' is already in HTML format
+            if isinstance(section['content'], list):
+                for item in section['content']:
+                    if isinstance(item, dict) and 'title' in item and 'content' in item:
+                        # Assuming 'content' in the item is a string
+                        html_output += "<h3>{}</h3>".format(item['title'])
+                        html_output += item['content']
+                    else:
+                        html_output += "<p>{}</p>".format(item)
+            else:
+                html_output += section['content']
 
         html_output += "</body></html>"
         return html_output
