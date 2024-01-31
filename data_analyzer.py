@@ -362,7 +362,7 @@ class DataAnalyzer(QObject):
         :param year_column: Column name with year data, expected to be in 'YYYY' format.
         :return: Textual analysis for yearly data.
         """
-        analysis_text = ["Yearly Analysis."]  # Start with header
+        analysis_text = ["Yearly Analysis:\n"]  # Start with header and newline
 
         # Convert year column to datetime and set as index
         df[year_column] = pd.to_datetime(df[year_column], format='%Y', errors='coerce')
@@ -404,7 +404,7 @@ class DataAnalyzer(QObject):
                     'value': net_change,
                     'year1': df.index.min().year,
                     'year2': df.index.max().year,
-                    'percentage': ...,  # Add calculated percentage (if applicable)
+                    'percentage': ...,  # Make sure to calculate or handle this placeholder appropriately
                     'number': number_of_years,
                     'year': random_year,
                     'higher_or_lower': higher_or_lower_result
@@ -423,9 +423,7 @@ class DataAnalyzer(QObject):
                 analysis_text.append(f"Error in analyzing yearly data for '{variable}': {str(e)}")
                 print(traceback.format_exc())
 
-            return "\n".join(analysis_text)
-
-
+        return "\n".join(analysis_text)
 
     def _analyze_monthly_data(self, df, month_column, variable):
         """
