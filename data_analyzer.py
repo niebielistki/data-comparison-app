@@ -371,6 +371,13 @@ class DataAnalyzer(QObject):
         df.set_index(year_column, inplace=True)
         df_sorted = df.sort_values(by=year_column)
 
+        if df_sorted['yearly_volatility'].notna().any():
+            most_volatile_year = df_sorted['yearly_volatility'].idxmax().year
+            least_volatile_year = df_sorted['yearly_volatility'].idxmin().year
+        else:
+            most_volatile_year = None
+            least_volatile_year = None
+
         for variable in df.columns:
             if variable == year_column:
                 continue
@@ -416,7 +423,7 @@ class DataAnalyzer(QObject):
                 analysis_templates = self.get_analysis_templates('yearly', 'numeric')
                 analysis_result = [template.format(**analysis_data) for template in analysis_templates]
                 print("Templates filled.")
-                final_analysis = "\n".join(analysis_result)
+                final_analysis = "<br>".join(analysis_result)
                 analysis_text.append(final_analysis)
 
             except Exception as e:
