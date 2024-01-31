@@ -392,6 +392,12 @@ class DataAnalyzer(QObject):
             # Debug:
             print("Yearly volatility calculated.")
 
+            # Debug:
+            print(df.head())  # Print the first few rows of df
+            print("Year column:", year_column)
+            print("Variable:", variable)
+
+
             # Ensure df is prepared
             if df.empty or year_column not in df or variable not in df:
                 return "Invalid input data."
