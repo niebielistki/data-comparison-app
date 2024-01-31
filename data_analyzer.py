@@ -127,21 +127,18 @@ class AnalysisUtilities:
         upper_bound = Q3 + 1.5 * IQR
         return data_series[(data_series < lower_bound) | (data_series > upper_bound)]
 
+    @staticmethod
     def select_random_year(df):
         years = df.index.year.unique().tolist()
         random_year = random.choice(years)
         return random_year
 
+    @staticmethod
     def higher_or_lower(df, year, variable):
         previous_years_avg = df[df.index.year < year][variable].mean()
         current_year_value = df[df.index.year == year][variable].mean()
 
         return "higher" if current_year_value > previous_years_avg else "lower"
-
-    # Usage in your code
-    random_year = select_random_year(df)
-    higher_or_lower_result = higher_or_lower(df, random_year, variable)
-
 
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
@@ -395,6 +392,13 @@ class DataAnalyzer(QObject):
             # Debug:
             print("Yearly volatility calculated.")
 
+            # Ensure df is prepared
+            if df.empty or year_column not in df or variable not in df:
+                return "Invalid input data."
+
+            # Now that df is prepared, call the utility functions
+            random_year = AnalysisUtilities.select_random_year(df)
+            higher_or_lower_result = AnalysisUtilities.higher_or_lower(df, random_year, variable)
 
             # Net changes:
             net_change = df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0]
@@ -415,7 +419,8 @@ class DataAnalyzer(QObject):
                 'year2': df.index.max().year,  # Example value
                 'percentage': percentage_change,  # Add calculated percentage
                 'number': number_of_years,  # Add calculated number of years
-                # 'higher/lower' and 'year' placeholders need specific logic based on context
+                'year': random_year,
+                'higher_or_lower': higher_or_lower_result
             }
 
             # Debug:
