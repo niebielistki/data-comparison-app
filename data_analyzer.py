@@ -16,6 +16,7 @@ from nltk.tokenize import word_tokenize
 from nltk.probability import FreqDist
 from nltk.corpus import stopwords
 import string
+import random
 
 
 class AnalysisUtilities:
@@ -126,6 +127,22 @@ class AnalysisUtilities:
         upper_bound = Q3 + 1.5 * IQR
         return data_series[(data_series < lower_bound) | (data_series > upper_bound)]
 
+    def select_random_year(df):
+        years = df.index.year.unique().tolist()
+        random_year = random.choice(years)
+        return random_year
+
+    def higher_or_lower(df, year, variable):
+        previous_years_avg = df[df.index.year < year][variable].mean()
+        current_year_value = df[df.index.year == year][variable].mean()
+
+        return "higher" if current_year_value > previous_years_avg else "lower"
+
+    # Usage in your code
+    random_year = select_random_year(df)
+    higher_or_lower_result = higher_or_lower(df, random_year, variable)
+
+
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
 
@@ -151,16 +168,16 @@ class DataAnalyzer(QObject):
                             "The largest year-on-year change in {variable} was between {year1} and {year2}, showing a {percentage}% difference.",
                             "The cumulative change in {variable} over the last {number} years was {value}, indicating a long-term {trend}.",
                             "An alternating pattern of {trend} in {variable} was noted every alternate year from {start_year} to {end_year}.",
-                            "The {variable} in {year1} was surprisingly {higher/lower} than the preceding {number} years' average, marking an anomaly."
+                            "The {variable} in {year} was surprisingly {higher_or_lower} than the preceding {number} years' average, marking an anomaly."
                 ],
-                'text': ["In {month}, the {column_name} showed a notable {trend} in {variable}.",
-                         "The {column_name} experienced its peak in {month/year}, with significant {metrics}.",
-                         "During {month/year}, a shift towards {column_name} was observed, influencing {variable} considerably.",
-                         "In {month/year}, {column_name} marked a turning point, with a marked {trend} in {variable}.",
-                         "A consistent trend in {column_name} across consecutive {months/years} indicates a stable market for {variable}.",
-                         "Seasonal variations are evident in {column_name}, with {month} typically showing a distinct pattern in {variable}.",
-                         "Comparative analysis reveals that {month/year} was pivotal for {column_name}, diverging from previous trends in {variable}.",
-                         "Anomaly detection in {month/year} for {column_name} suggests an unusual pattern in {variable}, warranting further investigation."
+                'text': ["In {year}, the {column_name} showed a notable {trend} in {variable}.",
+                         "The {column_name} experienced its peak in {year}, with significant {metrics}.",
+                         "During {year}, a shift towards {column_name} was observed, influencing {variable} considerably.",
+                         "In {year}, {column_name} marked a turning point, with a marked {trend} in {variable}.",
+                         "A consistent trend in {column_name} across consecutive {year} indicates a stable market for {variable}.",
+                         "Seasonal variations are evident in {column_name}, with {year} typically showing a distinct pattern in {variable}.",
+                         "Comparative analysis reveals that {year} was pivotal for {column_name}, diverging from previous trends in {variable}.",
+                         "Anomaly detection in {year} for {column_name} suggests an unusual pattern in {variable}, warranting further investigation."
                 ]
             },
             'monthly': {
@@ -378,6 +395,13 @@ class DataAnalyzer(QObject):
             # Debug:
             print("Yearly volatility calculated.")
 
+
+            # Net changes:
+            net_change = df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0]
+
+            # Number of years:
+            number_of_years = df.index.max().year - df.index.min().year
+
             # Prepare data for analysis template
             analysis_data = {
                 'start_year': df.index.min().year,
@@ -386,7 +410,12 @@ class DataAnalyzer(QObject):
                 'trend': trend,
                 'most_volatile_year': df_sorted['yearly_volatility'].idxmax().year,
                 'least_volatile_year': df_sorted['yearly_volatility'].idxmin().year,
-                # Additional metrics and calculations can be included as needed
+                'value': net_change,  # Add calculated net change
+                'year1': df.index.min().year,  # Example value
+                'year2': df.index.max().year,  # Example value
+                'percentage': percentage_change,  # Add calculated percentage
+                'number': number_of_years,  # Add calculated number of years
+                # 'higher/lower' and 'year' placeholders need specific logic based on context
             }
 
             # Debug:
