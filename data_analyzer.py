@@ -371,13 +371,6 @@ class DataAnalyzer(QObject):
         df.set_index(year_column, inplace=True)
         df_sorted = df.sort_values(by=year_column)
 
-        if df_sorted['yearly_volatility'].notna().any():
-            most_volatile_year = df_sorted['yearly_volatility'].idxmax().year
-            least_volatile_year = df_sorted['yearly_volatility'].idxmin().year
-        else:
-            most_volatile_year = None
-            least_volatile_year = None
-
         for variable in df.columns:
             if variable == year_column:
                 continue
@@ -393,6 +386,12 @@ class DataAnalyzer(QObject):
                 # Calculate yearly volatility with a 365-day rolling window
                 df_sorted['yearly_volatility'] = AnalysisUtilities.calculate_volatility(df_sorted[variable], window=365)
                 print("Yearly volatility calculated.")
+                if df_sorted['yearly_volatility'].notna().any():
+                    most_volatile_year = df_sorted['yearly_volatility'].idxmax().year
+                    least_volatile_year = df_sorted['yearly_volatility'].idxmin().year
+                else:
+                    most_volatile_year = None
+                    least_volatile_year = None
 
                 # Additional calculations and utility function calls
                 random_year = AnalysisUtilities.select_random_year(df)
