@@ -360,94 +360,72 @@ class DataAnalyzer(QObject):
 
         :param df: DataFrame containing the data.
         :param year_column: Column name with year data, expected to be in 'YYYY' format.
-        :param variable: The variable to be analyzed, expected to be a numerical column.
         :return: Textual analysis for yearly data.
         """
         analysis_text = ["Yearly Analysis."]  # Start with header
 
-        if variable not in df.columns:
-            return f"No data for variable '{variable}' to analyze."
+        # Convert year column to datetime and set as index
+        df[year_column] = pd.to_datetime(df[year_column], format='%Y', errors='coerce')
+        if df[year_column].isnull().any():
+            return "Year column contains invalid data. Cannot perform analysis."
+        df.set_index(year_column, inplace=True)
+        df_sorted = df.sort_values(by=year_column)
 
-        try:
-            # Debug:
-            print(f"Starting analysis for variable '{variable}'...")
-            # Convert year column to datetime and set as index
-            df[year_column] = pd.to_datetime(df[year_column], format='%Y', errors='coerce')
-            if df[year_column].isnull().any():
-                return "Year column contains invalid data. Cannot perform analysis."
-            df.set_index(year_column, inplace=True)
-
-            # Sort DataFrame by the year for chronological analysis
-            df_sorted = df.sort_values(by=year_column)
-            # Debug:
-            print("Data sorted by year.")
-
-            # Detect trend using the AnalysisUtilities class
-            trend = AnalysisUtilities.detect_trend(df_sorted[variable])
-            # Debug:
-            print(f"Trend detected: {trend}")
-
-            # Calculate yearly volatility with a 365-day rolling window
-            df_sorted['yearly_volatility'] = AnalysisUtilities.calculate_volatility(df_sorted[variable], window=365)
-            # Debug:
-            print("Yearly volatility calculated.")
-
-            # Debug:
-            print(df.head())  # Print the first few rows of df
-            print("Year column:", year_column)
-            print("Variable:", variable)
-
+        for variable in df.columns:
+            if variable == year_column:
+                continue
 
             # Ensure df is prepared
-            if df.empty or year_column not in df or variable not in df:
-                return "Invalid input data."
+            if df.empty or variable not in df:
+                continue
 
-            # Now that df is prepared, call the utility functions
-            random_year = AnalysisUtilities.select_random_year(df)
-            higher_or_lower_result = AnalysisUtilities.higher_or_lower(df, random_year, variable)
+            try:
+                # Detect trend using the AnalysisUtilities class
+                trend = AnalysisUtilities.detect_trend(df_sorted[variable])
+                print(f"Trend detected: {trend}")
+                # Calculate yearly volatility with a 365-day rolling window
+                df_sorted['yearly_volatility'] = AnalysisUtilities.calculate_volatility(df_sorted[variable], window=365)
+                print("Yearly volatility calculated.")
 
-            # Net changes:
-            net_change = df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0]
+                # Additional calculations and utility function calls
+                random_year = AnalysisUtilities.select_random_year(df)
+                higher_or_lower_result = AnalysisUtilities.higher_or_lower(df, random_year, variable)
+                net_change = df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0]
+                number_of_years = df.index.max().year - df.index.min().year
 
-            # Number of years:
-            number_of_years = df.index.max().year - df.index.min().year
+                # Prepare data for analysis template
+                analysis_data = {
+                    'start_year': df.index.min().year,
+                    'end_year': df.index.max().year,
+                    'variable': variable,
+                    'trend': trend,
+                    'most_volatile_year': df_sorted['yearly_volatility'].idxmax().year,
+                    'least_volatile_year': df_sorted['yearly_volatility'].idxmin().year,
+                    'value': net_change,
+                    'year1': df.index.min().year,
+                    'year2': df.index.max().year,
+                    'percentage': ...,  # Add calculated percentage (if applicable)
+                    'number': number_of_years,
+                    'year': random_year,
+                    'higher_or_lower': higher_or_lower_result
+                }
 
-            # Prepare data for analysis template
-            analysis_data = {
-                'start_year': df.index.min().year,
-                'end_year': df.index.max().year,
-                'variable': variable,
-                'trend': trend,
-                'most_volatile_year': df_sorted['yearly_volatility'].idxmax().year,
-                'least_volatile_year': df_sorted['yearly_volatility'].idxmin().year,
-                'value': net_change,  # Add calculated net change
-                'year1': df.index.min().year,  # Example value
-                'year2': df.index.max().year,  # Example value
-                'percentage': percentage_change,  # Add calculated percentage
-                'number': number_of_years,  # Add calculated number of years
-                'year': random_year,
-                'higher_or_lower': higher_or_lower_result
-            }
+                print(f"Analysis data prepared: {analysis_data}")
 
-            # Debug:
-            print(f"Analysis data prepared: {analysis_data}")
+                # Select and fill in the appropriate analysis templates
+                analysis_templates = self.get_analysis_templates('yearly', 'numeric')
+                analysis_result = [template.format(**analysis_data) for template in analysis_templates]
+                print("Templates filled.")
+                final_analysis = "\n".join(analysis_result)
+                analysis_text.append(final_analysis)
 
-            # Select and fill in the appropriate analysis templates
-            analysis_templates = self.get_analysis_templates('yearly', 'numeric')
-            analysis_text = [template.format(**analysis_data) for template in analysis_templates]
-            # Debug:
-            print("Templates filled.")
+            except Exception as e:
+                analysis_text.append(f"Error in analyzing yearly data for '{variable}': {str(e)}")
+                print(traceback.format_exc())
 
-            final_analysis = "\n".join(analysis_text)
-            return final_analysis
+            return "\n".join(analysis_text)
 
-        except Exception as e:
-            # Detailed error message
-            print(f"Exception occurred: {str(e)}")
 
-            # Traceback:
-            print(traceback.format_exc())
-            return f"Error in analyzing yearly data: {str(e)}"
 
     def _analyze_monthly_data(self, df, month_column, variable):
         """
