@@ -355,6 +355,8 @@ class DataAnalyzer(QObject):
             return f"No data for variable '{variable}' to analyze."
 
         try:
+            # Debug:
+            print(f"Starting analysis for variable '{variable}'...")
             # Convert year column to datetime and set as index
             df[year_column] = pd.to_datetime(df[year_column], format='%Y', errors='coerce')
             if df[year_column].isnull().any():
@@ -363,12 +365,18 @@ class DataAnalyzer(QObject):
 
             # Sort DataFrame by the year for chronological analysis
             df_sorted = df.sort_values(by=year_column)
+            # Debug:
+            print("Data sorted by year.")
 
             # Detect trend using the AnalysisUtilities class
             trend = AnalysisUtilities.detect_trend(df_sorted[variable])
+            # Debug:
+            print(f"Trend detected: {trend}")
 
             # Calculate yearly volatility with a 365-day rolling window
             df_sorted['yearly_volatility'] = AnalysisUtilities.calculate_volatility(df_sorted[variable], window=365)
+            # Debug:
+            print("Yearly volatility calculated.")
 
             # Prepare data for analysis template
             analysis_data = {
@@ -381,14 +389,24 @@ class DataAnalyzer(QObject):
                 # Additional metrics and calculations can be included as needed
             }
 
+            # Debug:
+            print(f"Analysis data prepared: {analysis_data}")
+
             # Select and fill in the appropriate analysis templates
             analysis_templates = self.get_analysis_templates('yearly', 'numeric')
             analysis_text = [template.format(**analysis_data) for template in analysis_templates]
+            # Debug:
+            print("Templates filled.")
 
             final_analysis = "\n".join(analysis_text)
             return final_analysis
 
         except Exception as e:
+            # Detailed error message
+            print(f"Exception occurred: {str(e)}")
+
+            # Traceback:
+            print(traceback.format_exc())
             return f"Error in analyzing yearly data: {str(e)}"
 
     def _analyze_monthly_data(self, df, month_column, variable):
