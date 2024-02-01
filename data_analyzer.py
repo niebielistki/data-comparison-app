@@ -140,6 +140,31 @@ class AnalysisUtilities:
 
         return "higher" if current_year_value > previous_years_avg else "lower"
 
+    @staticmethod
+    def calculate_trend_strength(data_series):
+        """
+        Quantifies the strength of a trend based on the slope of a linear regression line.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the absolute value of the slope, indicating trend strength.
+        """
+        x = np.arange(len(data_series))
+        y = data_series.values
+        slope, _, _, _, _ = linregress(x, y)
+        return abs(slope)
+
+    @staticmethod
+    def calculate_volatility_score(data_series):
+        """
+        Provides a normalized score of volatility based on the standard deviation relative to the mean.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Float, the volatility score.
+        """
+        if data_series.mean() != 0:  # Avoid division by zero
+            return data_series.std() / data_series.mean()
+        return 0
+
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
 
@@ -382,11 +407,11 @@ class DataAnalyzer(QObject):
             try:
                 # Detect trend using the AnalysisUtilities class
                 trend = AnalysisUtilities.detect_trend(df_sorted[variable])
-                print(f"Trend detected: {trend}")
+                trend_strength = AnalysisUtilities.calculate_trend_strength(df_sorted[variable])
+                volatility_score = AnalysisUtilities.calculate_volatility_score(df_sorted[variable])
 
                 # Calculate yearly volatility with a 365-day rolling window
                 df_sorted['yearly_volatility'] = AnalysisUtilities.calculate_volatility(df_sorted[variable], window=365)
-                print("Yearly volatility calculated.")
 
                 if df_sorted['yearly_volatility'].notna().any():
                     most_volatile_year = df_sorted['yearly_volatility'].idxmax().year
@@ -409,6 +434,8 @@ class DataAnalyzer(QObject):
                     'end_year': df.index.max().year,
                     'variable': variable,
                     'trend': trend,
+                    'trend_strength': trend_strength,
+                    'volatility_score': volatility_score,
                     'most_volatile_year': most_volatile_year,
                     'least_volatile_year': least_volatile_year,
                     'value': net_change,
