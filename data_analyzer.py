@@ -679,21 +679,21 @@ class DataAnalyzer(QObject):
 
             for file_path, df in data_frames.items():
                 # Data Cleaning Tool
-                if not section_already_added('Data Cleaning Tools', textual_analysis_sections):
+                if not self.section_already_added('Data Cleaning Tools', textual_analysis_sections):
                     data_cleaning_text = self.perform_data_cleaning_analysis(df)
                     if data_cleaning_text:
                         textual_analysis_sections.append(
                             {'title': 'Data Cleaning Tools', 'content': data_cleaning_text})
 
                 # Descriptive Statistics
-                if not section_already_added('Descriptive Statistics', textual_analysis_sections):
+                if not self.section_already_added('Descriptive Statistics', textual_analysis_sections):
                     descriptive_stats_text = self.calculate_descriptive_statistics(df).to_string()
                     if descriptive_stats_text:
                         textual_analysis_sections.append(
                             {'title': 'Descriptive Statistics', 'content': descriptive_stats_text})
 
                 # Time Series Analysis
-                if not section_already_added('Time Series Analysis', textual_analysis_sections):
+                if not self.section_already_added('Time Series Analysis', textual_analysis_sections):
                     time_series_analysis_text = self.analyze_time_series({file_path: df})
                     if time_series_analysis_text:
                         textual_analysis_sections.append(
@@ -727,7 +727,7 @@ class DataAnalyzer(QObject):
 
 
     # Helper function for classify_and_analyze_data method
-    def section_already_added(section_title, sections_list):
+    def section_already_added(self, section_title, sections_list):
         """
         Checks if a section with the given title has already been added to the list.
 
