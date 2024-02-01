@@ -4,6 +4,7 @@
 import pandas as pd
 from csv_handler import CSVHandler
 from scipy.stats import pearsonr
+from scipy.stats import zscore
 from scipy.stats import linregress
 from PyQt5.QtCore import QObject, pyqtSignal
 from collections import defaultdict
@@ -164,6 +165,38 @@ class AnalysisUtilities:
         if data_series.mean() != 0:  # Avoid division by zero
             return data_series.std() / data_series.mean()
         return 0
+
+    @staticmethod
+    def identify_anomalies(data_series):
+        """
+        Identifies anomalies in a data series using the Z-score method.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: A DataFrame with outliers and their z-scores.
+        """
+        z_scores = zscore(data_series)
+        anomalies = data_series[(z_scores < -3) | (z_scores > 3)]
+        return anomalies.to_frame(name='Value').assign(Z_Score=z_scores[(z_scores < -3) | (z_scores > 3)])
+
+    @staticmethod
+    def summarize_data_characteristics(data_series):
+        """
+        Aggregates analyses into a summary of data's characteristics.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: Dictionary summarizing the data's trend strength, volatility score, and anomalies.
+        """
+        trend_strength = AnalysisUtilities.calculate_trend_strength(data_series)
+        volatility_score = AnalysisUtilities.calculate_volatility_score(data_series)
+        anomalies = AnalysisUtilities.identify_anomalies(data_series)
+
+        summary = {
+            'Trend Strength': trend_strength,
+            'Volatility Score': volatility_score,
+            'Number of Anomalies': len(anomalies),
+            'Anomalies Detail': anomalies
+        }
+        return summary
 
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
@@ -409,6 +442,8 @@ class DataAnalyzer(QObject):
                 trend = AnalysisUtilities.detect_trend(df_sorted[variable])
                 trend_strength = AnalysisUtilities.calculate_trend_strength(df_sorted[variable])
                 volatility_score = AnalysisUtilities.calculate_volatility_score(df_sorted[variable])
+                anomalies = AnalysisUtilities.identify_anomalies(df_sorted[variable])
+                data_summary = AnalysisUtilities.summarize_data_characteristics(df_sorted[variable])
 
                 # Calculate yearly volatility with a 365-day rolling window
                 df_sorted['yearly_volatility'] = AnalysisUtilities.calculate_volatility(df_sorted[variable], window=365)
@@ -436,6 +471,8 @@ class DataAnalyzer(QObject):
                     'trend': trend,
                     'trend_strength': trend_strength,
                     'volatility_score': volatility_score,
+                    'anomalies_count': len(anomalies),
+                    'data_summary': data_summary,
                     'most_volatile_year': most_volatile_year,
                     'least_volatile_year': least_volatile_year,
                     'value': net_change,
