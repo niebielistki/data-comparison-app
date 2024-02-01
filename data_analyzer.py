@@ -280,7 +280,7 @@ class DataAnalyzer(QObject):
 
     # Function for Time Series Analysis
     def analyze_time_series(self, data_frames, time_series_priority=None):
-        analysis_results = [{"title": "Time Series Analysis", "content": ""}]
+        analysis_results = []
 
         # If a priority is given, use it. Otherwise, determine it based on data
         if not time_series_priority:
@@ -301,7 +301,7 @@ class DataAnalyzer(QObject):
             for time_type in time_priority:
                 column_name, _ = time_columns.get(time_type, (None, None))
                 if column_name and analysis_variable:
-                    analysis_result = {"title": f"{time_type} Analysis", "content": ""}
+                    analysis_result = {"title": f"{time_type} Analysis:", "content": ""}
                     print(f"Time type: {time_type}, Column name: {column_name}, Analysis variable: {analysis_variable}")
 
                     try:
@@ -362,7 +362,7 @@ class DataAnalyzer(QObject):
         :param year_column: Column name with year data, expected to be in 'YYYY' format.
         :return: Textual analysis for yearly data.
         """
-        analysis_text = ["Yearly Analysis:\n"]  # Start with header and newline
+        analysis_text = []
 
         # Convert year column to datetime and set as index
         df[year_column] = pd.to_datetime(df[year_column], format='%Y', errors='coerce')
@@ -678,11 +678,13 @@ class DataAnalyzer(QObject):
             textual_analysis_sections = []
 
             for file_path, df in data_frames.items():
-                # Perform data cleaning and descriptive statistics analysis
+
+                # Data Cleaning Tool
                 data_cleaning_text = self.perform_data_cleaning_analysis(df)
                 if data_cleaning_text:
                     textual_analysis_sections.append({'title': 'Data Cleaning Tools', 'content': data_cleaning_text})
 
+                # Descriptive Statistics
                 descriptive_stats_text = self.calculate_descriptive_statistics(df).to_string()
                 if descriptive_stats_text:
                     textual_analysis_sections.append(
