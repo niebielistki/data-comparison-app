@@ -383,9 +383,11 @@ class DataAnalyzer(QObject):
                 # Detect trend using the AnalysisUtilities class
                 trend = AnalysisUtilities.detect_trend(df_sorted[variable])
                 print(f"Trend detected: {trend}")
+
                 # Calculate yearly volatility with a 365-day rolling window
                 df_sorted['yearly_volatility'] = AnalysisUtilities.calculate_volatility(df_sorted[variable], window=365)
                 print("Yearly volatility calculated.")
+
                 if df_sorted['yearly_volatility'].notna().any():
                     most_volatile_year = df_sorted['yearly_volatility'].idxmax().year
                     least_volatile_year = df_sorted['yearly_volatility'].idxmin().year
@@ -396,7 +398,9 @@ class DataAnalyzer(QObject):
                 # Additional calculations and utility function calls
                 random_year = AnalysisUtilities.select_random_year(df)
                 higher_or_lower_result = AnalysisUtilities.higher_or_lower(df, random_year, variable)
-                net_change = df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0]
+                net_change = round(df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0], 2)
+                percentage_change = round((net_change / df_sorted[variable].iloc[0]) * 100, 2) if \
+                df_sorted[variable].iloc[0] != 0 else "N/A"
                 number_of_years = df.index.max().year - df.index.min().year
 
                 # Prepare data for analysis template
@@ -405,12 +409,12 @@ class DataAnalyzer(QObject):
                     'end_year': df.index.max().year,
                     'variable': variable,
                     'trend': trend,
-                    'most_volatile_year': df_sorted['yearly_volatility'].idxmax().year,
-                    'least_volatile_year': df_sorted['yearly_volatility'].idxmin().year,
+                    'most_volatile_year': most_volatile_year,
+                    'least_volatile_year': least_volatile_year,
                     'value': net_change,
                     'year1': df.index.min().year,
                     'year2': df.index.max().year,
-                    'percentage': ...,  # Make sure to calculate or handle this placeholder appropriately
+                    'percentage': percentage_change,
                     'number': number_of_years,
                     'year': random_year,
                     'higher_or_lower': higher_or_lower_result
