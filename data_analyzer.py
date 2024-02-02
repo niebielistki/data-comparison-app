@@ -209,22 +209,38 @@ class DataAnalyzer(QObject):
     # Templates for Textual Analysis
     def get_analysis_templates(self, analysis_type, data_type):
         """
-        Returns the appropriate analysis templates based on the analysis and data type.
+        Returns the appropriate analysis templates based on the analysis and data type,
+        including tags for dynamic selection based on data characteristics.
         :param analysis_type: A string indicating the type of analysis ('yearly', 'monthly', 'daily', 'data_cleaning', 'descriptive_stats').
         :param data_type: A string indicating the data type ('numeric', 'text', 'both').
         :return: A list of templates as strings.
         """
         templates = {
             'yearly': {
-                'numeric': ["A comparison from {start_year} to {end_year} shows {variable} fluctuating, with a net change of {value}.",
+                'numeric': {
+                    'tags': {
+                        'strong_increase': [
+                            "The year {year1} to {year2} showed a remarkable increase in {variable}, with a growth of {percentage}%, indicating strong upward momentum.",
+                            "Between {year1} and {year2}, {variable} experienced a robust increase, marking the period with the most significant growth rate of {percentage}%."
+                        ],
+                        'significant_volatility': [
+                            "Throughout the period from {start_year} to {end_year}, {variable} demonstrated significant volatility, especially in {most_volatile_year}.",
+                            "The data from {start_year} to {end_year} reveals pronounced fluctuations in {variable}, with {most_volatile_year} witnessing the highest volatility."
+                        ],
+                        'anomaly': [
+                            "An unusual observation in {year}, where {variable} was notably {higher_or_lower} than expected, marking an anomaly.",
+                            "The year {year} presented an unexpected deviation in {variable}, diverging sharply from the trend and signaling a potential anomaly."
+                        ],
+                        'general': [
+                            "A comparison from {start_year} to {end_year} shows {variable} fluctuating, with a net change of {value}.",
                             "Year-over-year, {variable} demonstrated a {trend} trend.",
                             "The year {year1} marked a significant {trend} in {variable}, deviating from previous trends.",
-                            "A steady {trend} in {variable} was observed every year from {start_year} to {end_year}.",
-                            "The largest year-on-year change in {variable} was between {year1} and {year2}, showing a {percentage}% difference.",
                             "The cumulative change in {variable} over the last {number} years was {value}, indicating a long-term {trend}.",
                             "An alternating pattern of {trend} in {variable} was noted every alternate year from {start_year} to {end_year}.",
-                            "The {variable} in {year} was surprisingly {higher_or_lower} than the preceding {number} years' average, marking an anomaly."
-                ],
+                            "Over the span from {start_year} to {end_year}, {variable} exhibited a {trend} trend, with a notable shift in {year} that deviated from earlier patterns."
+                        ]
+                    }
+                },
                 'text': ["In {year}, the {column_name} showed a notable {trend} in {variable}.",
                          "The {column_name} experienced its peak in {year}, with significant {metrics}.",
                          "During {year}, a shift towards {column_name} was observed, influencing {variable} considerably.",
@@ -309,12 +325,36 @@ class DataAnalyzer(QObject):
             }
         }
 
-        selected_templates = templates[analysis_type][data_type]
-        if data_type == 'both':
-            # Combine both numeric and text templates
-            selected_templates = templates[analysis_type]['numeric'] + templates[analysis_type]['text']
+        selected_category = templates.get(analysis_type, {})
+        selected_type = selected_category.get(data_type, {})
+        if 'tags' in selected_type:
+            # If specific tags are requested, return those templates
+            selected_templates = []
+            for tag, tag_templates in selected_type['tags'].items():
+                selected_templates.extend(tag_templates)
+            return selected_templates
+        else:
+            # Fallback to the original method's behavior
+            return selected_type if isinstance(selected_type, list) else []
 
-        return selected_templates
+    def determine_template_tags(self, data_summary):
+        """
+        Determines which template tags should be used based on data characteristics.
+
+        :param data_summary: A dictionary containing summarized data characteristics.
+        :return: A list of template tags.
+        """
+        tags = []
+        if data_summary['trend_strength'] > some_threshold:
+            tags.append('strong_increase')
+        if data_summary['volatility_score'] > another_threshold:
+            tags.append('significant_volatility')
+        if data_summary['anomalies_count'] > 0:
+            tags.append('anomaly')
+        if not tags:  # If no specific tags were added, use general templates
+            tags.append('general')
+        return tags
+
 
     def fill_placeholders(self, template, placeholder_values):
         """
@@ -412,9 +452,10 @@ class DataAnalyzer(QObject):
         # Return the type of the time column with the highest priority
         return sorted_time_columns[0][0] if sorted_time_columns else None
 
-    def _analyze_yearly_data(self, df, year_column, variable):
+    def _analyze_yearly_data(self, df, year_column):
         """
-        Analyzes yearly data for a given variable and generates textual analysis based on predefined templates.
+        Analyzes yearly data for a given variable and generates textual analysis based on predefined templates,
+        incorporating dynamic selection based on data characteristics.
 
         :param df: DataFrame containing the data.
         :param year_column: Column name with year data, expected to be in 'YYYY' format.
@@ -433,34 +474,22 @@ class DataAnalyzer(QObject):
             if variable == year_column:
                 continue
 
-            # Ensure df is prepared
             if df.empty or variable not in df:
                 continue
 
             try:
-                # Detect trend using the AnalysisUtilities class
                 trend = AnalysisUtilities.detect_trend(df_sorted[variable])
                 trend_strength = AnalysisUtilities.calculate_trend_strength(df_sorted[variable])
                 volatility_score = AnalysisUtilities.calculate_volatility_score(df_sorted[variable])
                 anomalies = AnalysisUtilities.identify_anomalies(df_sorted[variable])
-                data_summary = AnalysisUtilities.summarize_data_characteristics(df_sorted[variable])
+                # Removed data_summary as it was not explicitly defined in the provided snippet
 
-                # Calculate yearly volatility with a 365-day rolling window
-                df_sorted['yearly_volatility'] = AnalysisUtilities.calculate_volatility(df_sorted[variable], window=365)
+                most_volatile_year, least_volatile_year = self.get_volatility_years(df_sorted[variable])
 
-                if df_sorted['yearly_volatility'].notna().any():
-                    most_volatile_year = df_sorted['yearly_volatility'].idxmax().year
-                    least_volatile_year = df_sorted['yearly_volatility'].idxmin().year
-                else:
-                    most_volatile_year = None
-                    least_volatile_year = None
-
-                # Additional calculations and utility function calls
                 random_year = AnalysisUtilities.select_random_year(df)
                 higher_or_lower_result = AnalysisUtilities.higher_or_lower(df, random_year, variable)
                 net_change = round(df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0], 2)
-                percentage_change = round((net_change / df_sorted[variable].iloc[0]) * 100, 2) if \
-                df_sorted[variable].iloc[0] != 0 else "N/A"
+                percentage_change = self.calculate_percentage_change(df_sorted[variable])
                 number_of_years = df.index.max().year - df.index.min().year
 
                 # Prepare data for analysis template
@@ -472,7 +501,6 @@ class DataAnalyzer(QObject):
                     'trend_strength': trend_strength,
                     'volatility_score': volatility_score,
                     'anomalies_count': len(anomalies),
-                    'data_summary': data_summary,
                     'most_volatile_year': most_volatile_year,
                     'least_volatile_year': least_volatile_year,
                     'value': net_change,
@@ -484,12 +512,12 @@ class DataAnalyzer(QObject):
                     'higher_or_lower': higher_or_lower_result
                 }
 
-                print(f"Analysis data prepared: {analysis_data}")
-
-                # Select and fill in the appropriate analysis templates
-                analysis_templates = self.get_analysis_templates('yearly', 'numeric')
+                # Dynamically select and fill in the appropriate analysis templates
+                template_tags = self.determine_template_tags(analysis_data)  # This method needs to be implemented
+                analysis_templates = self.select_templates_based_on_tags('yearly', 'numeric',
+                                                                         template_tags)  # New method for dynamic selection
                 analysis_result = [template.format(**analysis_data) for template in analysis_templates]
-                print("Templates filled.")
+
                 final_analysis = "<br>".join(analysis_result)
                 analysis_text.append(final_analysis)
 
