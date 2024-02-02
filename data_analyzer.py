@@ -207,7 +207,7 @@ class DataAnalyzer(QObject):
 
 
     # Templates for Textual Analysis
-    def get_analysis_templates(self, analysis_type, data_type):
+    def get_analysis_templates(self, analysis_type, data_type, tags=None):
         """
         Returns the appropriate analysis templates based on the analysis and data type,
         including tags for dynamic selection based on data characteristics.
@@ -457,7 +457,7 @@ class DataAnalyzer(QObject):
         # Return the type of the time column with the highest priority
         return sorted_time_columns[0][0] if sorted_time_columns else None
 
-    def _analyze_yearly_data(self, df, year_column):
+    def _analyze_yearly_data(self, df, year_column, analysis_variable):
         """
         Analyzes yearly data for a given variable and generates textual analysis based on predefined templates,
         incorporating dynamic selection based on data characteristics.
