@@ -327,34 +327,39 @@ class DataAnalyzer(QObject):
 
         selected_category = templates.get(analysis_type, {})
         selected_type = selected_category.get(data_type, {})
-        if 'tags' in selected_type:
-            # If specific tags are requested, return those templates
-            selected_templates = []
-            for tag, tag_templates in selected_type['tags'].items():
-                selected_templates.extend(tag_templates)
-            return selected_templates
-        else:
-            # Fallback to the original method's behavior
-            return selected_type if isinstance(selected_type, list) else []
+        if tags:
+            filtered_templates = []
+            for tag in tags:
+                # Navigate through the nested structure to access templates by tags
+                tag_templates = templates.get(analysis_type, {}).get(data_type, {}).get('tags', {}).get(tag, [])
+                filtered_templates.extend(tag_templates)
+            return filtered_templates
 
-    def determine_template_tags(self, data_summary):
+            # Fallback to return all templates if no tags are provided or found
+        return templates.get(analysis_type, {}).get(data_type, [])
+
+    def determine_template_tags(self, analysis_data):
         """
-        Determines which template tags should be used based on data characteristics.
-
-        :param data_summary: A dictionary containing summarized data characteristics.
-        :return: A list of template tags.
+        Determines appropriate template tags based on analysis data characteristics.
         """
         tags = []
-        if data_summary['trend_strength'] > some_threshold:
+        # Example conditionals to determine tags
+        if analysis_data['trend_strength'] > some_threshold:
             tags.append('strong_increase')
-        if data_summary['volatility_score'] > another_threshold:
+        if analysis_data['volatility_score'] > another_threshold:
             tags.append('significant_volatility')
-        if data_summary['anomalies_count'] > 0:
+        if analysis_data['anomalies_count'] > 0:
             tags.append('anomaly')
-        if not tags:  # If no specific tags were added, use general templates
+        if not tags:  # Default to general if no specific conditions are met
             tags.append('general')
         return tags
 
+    def select_templates_based_on_tags(self, analysis_type, data_type, tags):
+        """
+        Dynamically selects sentence templates based on provided tags.
+        """
+        # Directly call get_analysis_templates with tags for filtering
+        return self.get_analysis_templates(analysis_type, data_type, tags)
 
     def fill_placeholders(self, template, placeholder_values):
         """
@@ -513,9 +518,10 @@ class DataAnalyzer(QObject):
                 }
 
                 # Dynamically select and fill in the appropriate analysis templates
-                template_tags = self.determine_template_tags(analysis_data)  # This method needs to be implemented
+                template_tags = self.determine_template_tags(analysis_data)  # Determine which tags apply
                 analysis_templates = self.select_templates_based_on_tags('yearly', 'numeric',
-                                                                         template_tags)  # New method for dynamic selection
+                                                                         template_tags)  # Retrieve filtered templates
+
                 analysis_result = [template.format(**analysis_data) for template in analysis_templates]
 
                 final_analysis = "<br>".join(analysis_result)
