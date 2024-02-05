@@ -200,17 +200,26 @@ class AnalysisUtilities:
         Aggregates analyses into a summary of data's characteristics.
 
         :param data_series: Pandas Series, a series of data points.
-        :return: Dictionary summarizing the data's trend strength, volatility score, and anomalies.
+        :return: Dictionary summarizing the data's trend strength, volatility score, trend reversals,
+                 exceptional periods, and notable anomalies.
         """
         trend_strength = AnalysisUtilities.calculate_trend_strength(data_series)
         volatility_score = AnalysisUtilities.calculate_volatility_score(data_series)
         anomalies = AnalysisUtilities.identify_anomalies(data_series)
 
+        # Detect trend reversals
+        trend_reversals = AnalysisUtilities.detect_trend_reversals(data_series)
+
+        # Identify exceptional periods of growth or decline
+        exceptional_periods = AnalysisUtilities.identify_exceptional_periods(data_series)
+
         summary = {
             'Trend Strength': trend_strength,
             'Volatility Score': volatility_score,
             'Number of Anomalies': len(anomalies),
-            'Anomalies Detail': anomalies
+            'Anomalies Detail': anomalies,
+            'Trend Reversals': trend_reversals,
+            'Exceptional Periods': exceptional_periods
         }
         return summary
 
@@ -369,11 +378,17 @@ class DataAnalyzer(QObject):
         # Define actual thresholds for your analysis
         strong_increase_threshold = 10  # Example: 10% increase considered strong
         significant_volatility_threshold = 0.2  # Example: 20% volatility considered significant
+        trend_reversal_threshold = 2  # Hypothetical threshold for detecting significant trend reversals
+        exceptional_period_threshold = 1.5  # Hypothetical threshold for identifying exceptional periods
 
         if analysis_data['trend_strength'] > strong_increase_threshold:
             tags.append('strong_increase')
         if analysis_data['volatility_score'] > significant_volatility_threshold:
             tags.append('significant_volatility')
+        if analysis_data.get('Trend Reversals', 0) > trend_reversal_threshold:
+            tags.append('trend_reversal')
+        if analysis_data.get('Exceptional Periods', 0) > exceptional_period_threshold:
+            tags.append('exceptional_period')
         if analysis_data['anomalies_count'] > 0:
             tags.append('anomaly')
         # Default to general if no specific conditions are met
