@@ -234,27 +234,28 @@ class AnalysisUtilities:
     def detect_trend_reversals(data_series):
         """
         Identifies points in the data series where the trend significantly changes direction.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: List of indices or descriptions of trend reversals.
+        This is a simplified example that looks for changes in the sign of the first derivative.
         """
-        # Placeholder for trend reversal detection logic
-        # This should analyze the data series to find trend reversals
-        trend_reversals = ["Example index or condition"]
-        return trend_reversals
+        # Calculate the difference to find changes
+        diffs = np.diff(data_series)
+        signs = np.sign(diffs)
+        # Find where the sign changes (from positive to negative or vice-versa)
+        reversals = np.where(np.diff(signs) != 0)[0] + 1  # +1 for the offset caused by diff
+        return list(reversals)
 
     @staticmethod
     def identify_exceptional_periods(data_series):
         """
         Identifies periods of exceptionally high growth, decline, or volatility.
-
-        :param data_series: Pandas Series, a series of data points.
-        :return: List of periods or descriptions of exceptional activity.
+        This is a simplified example that identifies periods where the absolute change exceeds two standard deviations.
         """
-        # Placeholder for exceptional period detection logic
-        # This could involve identifying periods with unusual statistical characteristics
-        exceptional_periods = ["Example period or condition"]
-        return exceptional_periods
+        # Calculate rolling standard deviation
+        rolling_std = data_series.rolling(window=12).std()
+        # Adjusted logic for identifying exceptional periods
+        mean_change = np.abs(np.diff(data_series)).mean()
+        adjusted_rolling_std = rolling_std[1:].reset_index(drop=True)  # Drop the first value to match diff length
+        exceptional_changes = np.where(np.abs(np.diff(data_series)) > (mean_change + 2 * adjusted_rolling_std))[0]
+        return list(exceptional_changes)
 
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
@@ -576,10 +577,9 @@ class DataAnalyzer(QObject):
                 data_characteristics = AnalysisUtilities.summarize_data_characteristics(df_sorted[variable])
                 trend_strength, volatility_score, anomalies = data_characteristics.values()
 
-                # Detecting trend reversals and exceptional periods directly
-                # This is a placeholder for logic to detect trend reversals and exceptional periods
-                trend_reversals, exceptional_periods = AnalysisUtilities.detect_trend_reversals(
-                    df_sorted[variable]), AnalysisUtilities.detect_exceptional_periods(df_sorted[variable])
+                # Assuming detect_trend_reversals and identify_exceptional_periods each return a list or similar iterable
+                trend_reversals = AnalysisUtilities.detect_trend_reversals(df_sorted[variable])
+                exceptional_periods = AnalysisUtilities.identify_exceptional_periods(df_sorted[variable])
 
                 # Integrating additional characteristics into analysis_data
                 analysis_data.update({
