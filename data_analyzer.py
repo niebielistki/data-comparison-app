@@ -214,6 +214,13 @@ class AnalysisUtilities:
         }
         return summary
 
+    @staticmethod
+    def calculate_percentage_change(data_series):
+        """Calculates the percentage change between the first and last value of a Pandas Series."""
+        if len(data_series) < 2 or data_series.iloc[0] == 0:
+            return None  # Can't calculate change from a single data point or from zero
+        return ((data_series.iloc[-1] - data_series.iloc[0]) / data_series.iloc[0]) * 100
+
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
 
@@ -502,9 +509,9 @@ class DataAnalyzer(QObject):
                 trend = AnalysisUtilities.detect_trend(df_sorted[variable])
                 trend_strength = AnalysisUtilities.calculate_trend_strength(df_sorted[variable])
 
-                # Calculate the volatility score for each row in the DataFrame and add it as a new column.
-                df_sorted['volatility_score'] = df_sorted[variable].rolling(window='365D').std() / df_sorted[
-                    variable].rolling(window='365D').mean()
+                # Direct calculation of volatility score for yearly data
+                volatility_score = df_sorted[variable].std() / df_sorted[variable].mean()
+                df_sorted['volatility_score'] = volatility_score  # This sets a constant value for all rows
 
                 anomalies = AnalysisUtilities.identify_anomalies(df_sorted[variable])
 
@@ -512,12 +519,12 @@ class DataAnalyzer(QObject):
                 if 'volatility_score' not in df_sorted.columns or df_sorted['volatility_score'].isna().all():
                     raise ValueError("Volatility score could not be calculated or is missing.")
 
-                most_volatile_year, least_volatile_year = AnalysisUtilities.get_volatility_years(df_sorted,'volatility_score')
+                most_volatile_year, least_volatile_year = AnalysisUtilities.get_volatility_years(df_sorted, 'volatility_score')
 
                 random_year = AnalysisUtilities.select_random_year(df)
                 higher_or_lower_result = AnalysisUtilities.higher_or_lower(df, random_year, variable)
                 net_change = round(df_sorted[variable].iloc[-1] - df_sorted[variable].iloc[0], 2)
-                percentage_change = self.calculate_percentage_change(df_sorted[variable])
+                percentage_change = AnalysisUtilities.calculate_percentage_change(df_sorted[variable])
                 number_of_years = df.index.max().year - df.index.min().year
 
                 # Prepare data for analysis template
