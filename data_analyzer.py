@@ -230,6 +230,32 @@ class AnalysisUtilities:
             return None  # Can't calculate change from a single data point or from zero
         return ((data_series.iloc[-1] - data_series.iloc[0]) / data_series.iloc[0]) * 100
 
+    @staticmethod
+    def detect_trend_reversals(data_series):
+        """
+        Identifies points in the data series where the trend significantly changes direction.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: List of indices or descriptions of trend reversals.
+        """
+        # Placeholder for trend reversal detection logic
+        # This should analyze the data series to find trend reversals
+        trend_reversals = ["Example index or condition"]
+        return trend_reversals
+
+    @staticmethod
+    def identify_exceptional_periods(data_series):
+        """
+        Identifies periods of exceptionally high growth, decline, or volatility.
+
+        :param data_series: Pandas Series, a series of data points.
+        :return: List of periods or descriptions of exceptional activity.
+        """
+        # Placeholder for exceptional period detection logic
+        # This could involve identifying periods with unusual statistical characteristics
+        exceptional_periods = ["Example period or condition"]
+        return exceptional_periods
+
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
 
@@ -546,8 +572,19 @@ class DataAnalyzer(QObject):
                 percentage_change = AnalysisUtilities.calculate_percentage_change(df_sorted[variable])
                 number_of_years = df.index.max().year - df.index.min().year
 
-                # Prepare data for analysis template
-                analysis_data = {
+                # Enhanced data characteristics summary
+                data_characteristics = AnalysisUtilities.summarize_data_characteristics(df_sorted[variable])
+                trend_strength, volatility_score, anomalies = data_characteristics.values()
+
+                # Detecting trend reversals and exceptional periods directly
+                # This is a placeholder for logic to detect trend reversals and exceptional periods
+                trend_reversals, exceptional_periods = AnalysisUtilities.detect_trend_reversals(
+                    df_sorted[variable]), AnalysisUtilities.detect_exceptional_periods(df_sorted[variable])
+
+                # Integrating additional characteristics into analysis_data
+                analysis_data.update({
+                    'trend_reversals': trend_reversals,
+                    'exceptional_periods': exceptional_periods,
                     'start_year': df.index.min().year,
                     'end_year': df.index.max().year,
                     'variable': variable,
@@ -564,12 +601,11 @@ class DataAnalyzer(QObject):
                     'number': number_of_years,
                     'year': random_year,
                     'higher_or_lower': higher_or_lower_result
-                }
+                })
 
                 # Dynamically select and fill in the appropriate analysis templates
                 template_tags = self.determine_template_tags(analysis_data)  # Determine which tags apply
-                analysis_templates = self.select_templates_based_on_tags('yearly', 'numeric',
-                                                                         template_tags)  # Retrieve filtered templates
+                analysis_templates = self.select_templates_based_on_tags('yearly', 'numeric',template_tags)  # Retrieve filtered templates
 
                 analysis_result = [template.format(**analysis_data) for template in analysis_templates]
 
