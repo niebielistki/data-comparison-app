@@ -366,14 +366,18 @@ class DataAnalyzer(QObject):
         Determines appropriate template tags based on analysis data characteristics.
         """
         tags = []
-        # Example conditionals to determine tags
-        if analysis_data['trend_strength'] > some_threshold:
+        # Define actual thresholds for your analysis
+        strong_increase_threshold = 10  # Example: 10% increase considered strong
+        significant_volatility_threshold = 0.2  # Example: 20% volatility considered significant
+
+        if analysis_data['trend_strength'] > strong_increase_threshold:
             tags.append('strong_increase')
-        if analysis_data['volatility_score'] > another_threshold:
+        if analysis_data['volatility_score'] > significant_volatility_threshold:
             tags.append('significant_volatility')
         if analysis_data['anomalies_count'] > 0:
             tags.append('anomaly')
-        if not tags:  # Default to general if no specific conditions are met
+        # Default to general if no specific conditions are met
+        if not tags:
             tags.append('general')
         return tags
 
