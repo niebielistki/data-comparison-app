@@ -142,6 +142,22 @@ class AnalysisUtilities:
         return "higher" if current_year_value > previous_years_avg else "lower"
 
     @staticmethod
+    def get_volatility_years(df, volatility_column='volatility_score'):
+        """
+        Identifies the years with the highest and lowest volatility.
+
+        :param df: A DataFrame with an index set to years and a column for volatility scores.
+        :param volatility_column: The name of the column containing volatility scores.
+        :return: A tuple containing the years with the most and least volatility.
+        """
+        if volatility_column not in df.columns:
+            raise ValueError(f"Column '{volatility_column}' not found in DataFrame.")
+
+        most_volatile_year = df[volatility_column].idxmax()
+        least_volatile_year = df[volatility_column].idxmin()
+        return (most_volatile_year, least_volatile_year)
+
+    @staticmethod
     def calculate_trend_strength(data_series):
         """
         Quantifies the strength of a trend based on the slope of a linear regression line.
@@ -485,11 +501,18 @@ class DataAnalyzer(QObject):
             try:
                 trend = AnalysisUtilities.detect_trend(df_sorted[variable])
                 trend_strength = AnalysisUtilities.calculate_trend_strength(df_sorted[variable])
-                volatility_score = AnalysisUtilities.calculate_volatility_score(df_sorted[variable])
-                anomalies = AnalysisUtilities.identify_anomalies(df_sorted[variable])
-                # Removed data_summary as it was not explicitly defined in the provided snippet
 
-                most_volatile_year, least_volatile_year = self.get_volatility_years(df_sorted[variable])
+                # Calculate the volatility score for each row in the DataFrame and add it as a new column.
+                df_sorted['volatility_score'] = df_sorted[variable].rolling(window='365D').std() / df_sorted[
+                    variable].rolling(window='365D').mean()
+
+                anomalies = AnalysisUtilities.identify_anomalies(df_sorted[variable])
+
+                # Ensure there's a valid 'volatility_score' column available for analysis.
+                if 'volatility_score' not in df_sorted.columns or df_sorted['volatility_score'].isna().all():
+                    raise ValueError("Volatility score could not be calculated or is missing.")
+
+                most_volatile_year, least_volatile_year = AnalysisUtilities.get_volatility_years(df_sorted,'volatility_score')
 
                 random_year = AnalysisUtilities.select_random_year(df)
                 higher_or_lower_result = AnalysisUtilities.higher_or_lower(df, random_year, variable)
