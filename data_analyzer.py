@@ -216,9 +216,9 @@ class AnalysisUtilities:
         summary = {
             'Trend Strength': trend_strength,
             'Volatility Score': volatility_score,
-            'Number of Anomalies': len(anomalies),
             'Anomalies Detail': anomalies,
             'Trend Reversals': trend_reversals,
+            'Number of Anomalies': len(anomalies),
             'Exceptional Periods': exceptional_periods
         }
         return summary
@@ -284,11 +284,13 @@ class DataAnalyzer(QObject):
                         ],
                         'significant_volatility': [
                             "Throughout the period from {start_year} to {end_year}, {variable} demonstrated significant volatility, especially in {most_volatile_year}.",
-                            "The data from {start_year} to {end_year} reveals pronounced fluctuations in {variable}, with {most_volatile_year} witnessing the highest volatility."
+                            "The data from {start_year} to {end_year} reveals pronounced fluctuations in {variable}, with {most_volatile_year} witnessing the highest volatility.",
+                            "Periods of high volatility were marked by extreme fluctuations in {variable}, notably in {most_volatile_year}, challenging predictability."
                         ],
                         'anomaly': [
                             "An unusual observation in {year}, where {variable} was notably {higher_or_lower} than expected, marking an anomaly.",
-                            "The year {year} presented an unexpected deviation in {variable}, diverging sharply from the trend and signaling a potential anomaly."
+                            "The year {year} presented an unexpected deviation in {variable}, diverging sharply from the trend and signaling a potential anomaly.",
+                            "In {year}, an anomaly in {variable} prompted a reevaluation of expected trends, underscoring its significance."
                         ],
                         'general': [
                             "A comparison from {start_year} to {end_year} shows {variable} fluctuating, with a net change of {value}.",
@@ -296,19 +298,49 @@ class DataAnalyzer(QObject):
                             "The year {year1} marked a significant {trend} in {variable}, deviating from previous trends.",
                             "The cumulative change in {variable} over the last {number} years was {value}, indicating a long-term {trend}.",
                             "An alternating pattern of {trend} in {variable} was noted every alternate year from {start_year} to {end_year}.",
-                            "Over the span from {start_year} to {end_year}, {variable} exhibited a {trend} trend, with a notable shift in {year} that deviated from earlier patterns."
+                            "Over the span from {start_year} to {end_year}, {variable} exhibited a {trend} trend, with a notable shift in {year} that deviated from earlier patterns.",
+                            "Despite fluctuations, {variable} maintained a relatively stable course from {start_year} to {end_year}, with minor deviations."
+                        ],
+                        'trend_reversal': [
+                            "The period from {year1} to {year2} witnessed a notable trend reversal in {variable}, transitioning from steady increase to sharp decline.",
+                            "Significant trend reversals in {variable} were observed, particularly in {year}, marking a pivotal shift in trajectory."
+                        ],
+                        'exceptional_growth': [
+                            "Exceptional growth in {variable} during {year} set new benchmarks, exceeding historical growth rates by a significant margin.",
+                            "The year {year} stood out for {variable}, showcasing exceptional growth that surpassed expectations and previous records."
+                        ],
+                        'exceptional_decline': [
+                            "A surprising downturn in {variable} during {year} marked an exceptional period of decline, reflecting broader market challenges.",
+                            "The exceptional decline of {variable} in {year} highlighted unforeseen market dynamics, prompting a strategic reassessment."
+                        ],
+                        'stability': [
+                            "Throughout {start_year} to {end_year}, {variable} demonstrated remarkable stability, with minimal fluctuations influencing the trend.",
+                            "Stability in {variable} throughout the period of {start_year} to {end_year} underscored the underlying steadiness, contrasting with periods of volatility."
                         ]
                     }
                 },
-                'text': ["In {year}, the {column_name} showed a notable {trend} in {variable}.",
-                         "The {column_name} experienced its peak in {year}, with significant {metrics}.",
-                         "During {year}, a shift towards {column_name} was observed, influencing {variable} considerably.",
-                         "In {year}, {column_name} marked a turning point, with a marked {trend} in {variable}.",
-                         "A consistent trend in {column_name} across consecutive {year} indicates a stable market for {variable}.",
-                         "Seasonal variations are evident in {column_name}, with {year} typically showing a distinct pattern in {variable}.",
-                         "Comparative analysis reveals that {year} was pivotal for {column_name}, diverging from previous trends in {variable}.",
-                         "Anomaly detection in {year} for {column_name} suggests an unusual pattern in {variable}, warranting further investigation."
-                ]
+                'text': {
+                    'tags': {
+                        'general': [
+                            "In {year}, the {column_name} showed a notable {trend} in {variable}.",
+                            "The {column_name} experienced its peak in {year}, with significant {metrics}.",
+                            "During {year}, a shift towards {column_name} was observed, influencing {variable} considerably.",
+                            "In {year}, {column_name} marked a turning point, with a marked {trend} in {variable}.",
+                            "A consistent trend in {column_name} across consecutive {year} indicates a stable market for {variable}.",
+                            "Seasonal variations are evident in {column_name}, with {year} typically showing a distinct pattern in {variable}.",
+                            "Comparative analysis reveals that {year} was pivotal for {column_name}, diverging from previous trends in {variable}."
+                        ],
+                        'trend_reversal': [
+                            "In {year}, {column_name} documented a dramatic shift in {variable}, indicative of a broader trend reversal that defied previous patterns."
+                        ],
+                        'exceptional_growth': [
+                            "The narrative of {column_name} in {year} was one of unexpected growth, marking an exceptional period that drew significant attention."
+                        ],
+                        'anomaly': [
+                            "Anomaly detection in {year} for {column_name} suggests an unusual pattern in {variable}, warranting further investigation."
+                        ]
+                    }
+                }
             },
             'monthly': {
                 'numeric': ["In {month}, {variable} tends to show a {rise/drop}, relative to previous months.",
@@ -319,7 +351,7 @@ class DataAnalyzer(QObject):
                             "Over the last {number} years, {variable} has shown a gradual {increase/decrease} during the {month} period.",
                             "The variance of {variable} in {month} has been decreasing/increasing, suggesting a stabilization/volatility over the years.",
                             "In comparing {month1} to {month2}, a consistent shift in the pattern of {variable} is observed, with {month2} often showing a contrasting trend."
-                ],
+                            ],
                 'text': ["In {month}, the {column_name} showed a notable {trend} in {variable}.",
                          "The {column_name} experienced its peak in {month/year}, with significant {metrics}.",
                          "During {month/year}, a shift towards {column_name} was observed, influencing {variable} considerably.",
@@ -328,7 +360,7 @@ class DataAnalyzer(QObject):
                          "Seasonal variations are evident in {column_name}, with {month} typically showing a distinct pattern in {variable}.",
                          "Comparative analysis reveals that {month/year} was pivotal for {column_name}, diverging from previous trends in {variable}.",
                          "Anomaly detection in {month/year} for {column_name} suggests an unusual pattern in {variable}, warranting further investigation."
-                ]
+                         ]
             },
             'daily': {
                 'numeric': ["On {specific_date}, a record-breaking {variable} value of {value} was observed.",
@@ -339,7 +371,7 @@ class DataAnalyzer(QObject):
                             "The {variable} showed an unexpected spike/drop on {specific_date}, deviating significantly from the monthly average.",
                             "Week-to-week analysis from {start_date} to {end_date} reveals a consistent {increase/decrease} in {variable}.",
                             "A sudden change in {variable} was observed around {specific_date}, marking a distinct shift from the established pattern."
-                ],
+                            ],
                 'text': ["On {specific_date}, a notable {trend} was observed in {variable} within the {column_name}.",
                          "A significant event in {column_name} on {specific_date} led to a marked change in {variable}.",
                          "The data shows an unusual spike/drop in {variable} on {specific_date}, indicating an outlier or a special event in {column_name}.",
@@ -348,7 +380,7 @@ class DataAnalyzer(QObject):
                          "The period immediately following {specific_date} shows a noticeable shift in {variable}, reflecting changes in {column_name}.",
                          "On {specific_date}, {column_name} reached a historical high/low in {variable}, setting a new record",
                          "The week of {specific_date} was critical for {column_name}, with {variable} showing significant fluctuations."
-                ]
+                         ]
             },
             'data_cleaning': {
                 'numeric': ["Missing Data: {column_name} column has {percentage_missing_data}% missing data.",
@@ -356,12 +388,12 @@ class DataAnalyzer(QObject):
                             "Outlier Detection: {column_name} column has {number_of_outliers} potential outliers (values significantly higher/lower than the rest).",
                             "Duplicate Data: {number_of_duplicate_entries} duplicate entries found.",
                             "Invalid Data: {column_name} has {number_of_invalid_entries} entries with invalid values (e.g., negative where only positive expected)."
-                ],
+                            ],
                 'text': ["Missing Data: {column_name} column has {percentage_missing_data}% missing data.",
                          "Text Length Analysis: {column_name} column has several unusually long/short entries.",
                          "Missing Text Data: {column_name} column missing in {number_of_missing_rows} rows.",
                          "Average Word Length per Column: {column_name_1}: {average_length_1} characters, {column_name_2}: {average_length_2} characters, {column_name_3}: {average_length_3} characters."
-                ]
+                         ]
             },
             'descriptive_stats': {
                 'numeric': ["Mean: Average '{column_name}' ({start_year}-{end_year}) - {average_value}.",
@@ -373,14 +405,15 @@ class DataAnalyzer(QObject):
                             "Kurtosis: '{column_name}' shows a {type_of_kurtosis} distribution (e.g., high/low kurtosis).",
                             "Percentiles/Quartiles: Key percentiles of '{column_name}' - 25th: {25th_percentile_value}; 50th: {50th_percentile_value}; 75th: {75th_percentile_value}.",
                             "Correlation Matrix: Relationship between '{column_name1}' and '{column_name2}' shows a {type_of_correlation} correlation."
-                ],
-                'text': ["Most frequent keyword in {column_name_1}: {most_frequent_keyword_1} (appeared {count_1} times).",
-                         "Least appearing keyword in {column_name_1}: {least_frequent_keyword_1} (appeared {count_least_1} times).",
-                         "Most frequent keyword in {column_name_2}: {most_frequent_keyword_2} (appeared {count_2} times).",
-                         "Least appearing keyword in {column_name_2}: {least_frequent_keyword_2} (appeared {count_least_2} times).",
-                         "Most frequent keyword in {column_name_3}: {most_frequent_keyword_3} (appeared {count_3} times).",
-                         "Least appearing keyword in {column_name_3}: {least_frequent_keyword_3} (appeared {count_least_3} times)."
-                ]
+                            ],
+                'text': [
+                    "Most frequent keyword in {column_name_1}: {most_frequent_keyword_1} (appeared {count_1} times).",
+                    "Least appearing keyword in {column_name_1}: {least_frequent_keyword_1} (appeared {count_least_1} times).",
+                    "Most frequent keyword in {column_name_2}: {most_frequent_keyword_2} (appeared {count_2} times).",
+                    "Least appearing keyword in {column_name_2}: {least_frequent_keyword_2} (appeared {count_least_2} times).",
+                    "Most frequent keyword in {column_name_3}: {most_frequent_keyword_3} (appeared {count_3} times).",
+                    "Least appearing keyword in {column_name_3}: {least_frequent_keyword_3} (appeared {count_least_3} times)."
+                    ]
             }
         }
 
@@ -403,24 +436,40 @@ class DataAnalyzer(QObject):
         """
         tags = []
         # Define actual thresholds for your analysis
-        strong_increase_threshold = 10  # Example: 10% increase considered strong
-        significant_volatility_threshold = 0.2  # Example: 20% volatility considered significant
-        trend_reversal_threshold = 2  # Hypothetical threshold for detecting significant trend reversals
-        exceptional_period_threshold = 1.5  # Hypothetical threshold for identifying exceptional periods
+        strong_increase_threshold = 10  # Example threshold for strong increase
+        significant_volatility_threshold = 0.2  # Example threshold for significant volatility
+        trend_reversal_count_threshold = 1  # Threshold for the count of trend reversals
+        exceptional_growth_threshold = 1.5  # Threshold for exceptional growth rate
+        exceptional_decline_threshold = -1.5  # Threshold for exceptional decline rate
+        stability_threshold_range = (0.95, 1.05)  # Range for considering stability
 
+        # Apply thresholds to determine tags directly comparing integer values
         if analysis_data['trend_strength'] > strong_increase_threshold:
             tags.append('strong_increase')
+        elif analysis_data['trend_strength'] < exceptional_decline_threshold:
+            tags.append('exceptional_decline')
+
         if analysis_data['volatility_score'] > significant_volatility_threshold:
             tags.append('significant_volatility')
-        if analysis_data.get('Trend Reversals', 0) > trend_reversal_threshold:
+
+        # Direct comparison without len() as trend_reversals is an integer now
+        if analysis_data.get('trend_reversals', 0) >= trend_reversal_count_threshold:
             tags.append('trend_reversal')
-        if analysis_data.get('Exceptional Periods', 0) > exceptional_period_threshold:
-            tags.append('exceptional_period')
+
+        if analysis_data.get('percentage_change', 0) >= exceptional_growth_threshold:
+            tags.append('exceptional_growth')
+
+        # Adjust stability check if necessary
+        # Assuming volatility score is within a range for stability
+        if stability_threshold_range[0] <= analysis_data.get('volatility_score', 1) <= stability_threshold_range[1]:
+            tags.append('stability')
+
         if analysis_data['anomalies_count'] > 0:
             tags.append('anomaly')
-        # Default to general if no specific conditions are met
+
         if not tags:
             tags.append('general')
+
         return tags
 
     def select_templates_based_on_tags(self, analysis_type, data_type, tags):
@@ -552,20 +601,33 @@ class DataAnalyzer(QObject):
                 continue
 
             try:
+                data_type = 'numeric' if df[variable].dtype in ['int64', 'float64'] else 'text'
+                data_characteristics = AnalysisUtilities.summarize_data_characteristics(df_sorted[variable])
+
                 trend = AnalysisUtilities.detect_trend(df_sorted[variable])
-                trend_strength = AnalysisUtilities.calculate_trend_strength(df_sorted[variable])
+                # trend_strength = AnalysisUtilities.calculate_trend_strength(df_sorted[variable])
 
                 # Direct calculation of volatility score for yearly data
-                volatility_score = df_sorted[variable].std() / df_sorted[variable].mean()
-                df_sorted['volatility_score'] = volatility_score  # This sets a constant value for all rows
+                # volatility_score = df_sorted[variable].std() / df_sorted[variable].mean()
+                # df_sorted['volatility_score'] = volatility_score  # This sets a constant value for all rows
 
-                anomalies = AnalysisUtilities.identify_anomalies(df_sorted[variable])
+                # Directly calculate the volatility score for use in analysis_data dictionary
+                volatility_score = df_sorted[variable].std() / df_sorted[variable].mean() if data_type == 'numeric' else 0
 
-                # Ensure there's a valid 'volatility_score' column available for analysis.
-                if 'volatility_score' not in df_sorted.columns or df_sorted['volatility_score'].isna().all():
-                    raise ValueError("Volatility score could not be calculated or is missing.")
+                # Calculate additional characteristics as needed
+                trend_reversals = AnalysisUtilities.detect_trend_reversals(df_sorted[variable]) or []
+                exceptional_periods = AnalysisUtilities.identify_exceptional_periods(df_sorted[variable]) or []
 
-                most_volatile_year, least_volatile_year = AnalysisUtilities.get_volatility_years(df_sorted, 'volatility_score')
+                if data_type == 'numeric':
+                    yearly_changes = df_sorted[variable].diff()
+                    most_volatile_year = yearly_changes.idxmax().year
+                    least_volatile_year = yearly_changes.idxmin().year
+                else:
+                    most_volatile_year = None
+                    least_volatile_year = None
+
+
+                # most_volatile_year, least_volatile_year = AnalysisUtilities.get_volatility_years(df_sorted, 'volatility_score')
 
                 random_year = AnalysisUtilities.select_random_year(df)
                 higher_or_lower_result = AnalysisUtilities.higher_or_lower(df, random_year, variable)
@@ -573,27 +635,22 @@ class DataAnalyzer(QObject):
                 percentage_change = AnalysisUtilities.calculate_percentage_change(df_sorted[variable])
                 number_of_years = df.index.max().year - df.index.min().year
 
-                # Enhanced data characteristics summary
-                data_characteristics = AnalysisUtilities.summarize_data_characteristics(df_sorted[variable])
-                trend_strength, volatility_score, anomalies = data_characteristics.values()
-
-                # Assuming detect_trend_reversals and identify_exceptional_periods each return a list or similar iterable
-                trend_reversals = AnalysisUtilities.detect_trend_reversals(df_sorted[variable])
-                exceptional_periods = AnalysisUtilities.identify_exceptional_periods(df_sorted[variable])
+                analysis_data = {}
+                analysis_data = data_characteristics.copy()
 
                 # Integrating additional characteristics into analysis_data
                 analysis_data.update({
-                    'trend_reversals': trend_reversals,
-                    'exceptional_periods': exceptional_periods,
+                    'trend_strength': data_characteristics.get('Trend Strength', 0),
+                    'volatility_score': volatility_score,
+                    'trend_reversals': len(trend_reversals),
+                    'exceptional_periods': len(exceptional_periods),
+                    'anomalies_count': data_characteristics.get('Number of Anomalies', 0),
                     'start_year': df.index.min().year,
                     'end_year': df.index.max().year,
                     'variable': variable,
                     'trend': trend,
-                    'trend_strength': trend_strength,
-                    'volatility_score': volatility_score,
-                    'anomalies_count': len(anomalies),
-                    'most_volatile_year': most_volatile_year.year if hasattr(most_volatile_year, 'year') else most_volatile_year,
-                    'least_volatile_year': least_volatile_year.year if hasattr(least_volatile_year, 'year') else least_volatile_year,
+                    'most_volatile_year': most_volatile_year,
+                    'least_volatile_year': least_volatile_year,
                     'value': net_change,
                     'year1': df.index.min().year,
                     'year2': df.index.max().year,
@@ -603,14 +660,18 @@ class DataAnalyzer(QObject):
                     'higher_or_lower': higher_or_lower_result
                 })
 
-                # Dynamically select and fill in the appropriate analysis templates
-                template_tags = self.determine_template_tags(analysis_data)  # Determine which tags apply
-                analysis_templates = self.select_templates_based_on_tags('yearly', 'numeric',template_tags)  # Retrieve filtered templates
+                # Determine tags based on the analysis data
+                tags = self.determine_template_tags(analysis_data)
 
-                analysis_result = [template.format(**analysis_data) for template in analysis_templates]
+                # Select templates based on the determined tags
+                selected_templates = self.select_templates_based_on_tags('yearly', data_type, tags)
 
-                final_analysis = "<br>".join(analysis_result)
-                analysis_text.append(final_analysis)
+                # Fill templates with actual data and append to analysis text
+                for template in selected_templates:
+                    # Assuming placeholders in templates match keys in data_characteristics
+                    filled_template = template.format(**analysis_data)
+                    analysis_text.append(f"{filled_template}<br>")
+
 
             except Exception as e:
                 analysis_text.append(f"Error in analyzing yearly data for '{variable}': {str(e)}")
