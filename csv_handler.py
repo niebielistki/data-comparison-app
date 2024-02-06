@@ -3,6 +3,7 @@
 
 import os
 import pandas as pd
+import numpy as np
 
 
 class CSVHandler:
@@ -99,3 +100,26 @@ class CSVHandler:
                 suggestion = f"Compare {', '.join(columns)} between {', '.join(file_set)}"
                 suggestions[suggestion] = (file_set, columns)
         return suggestions
+
+    def detect_outliers(self, df):
+        outlier_info = {}
+        for column in df.select_dtypes(include=[np.number]).columns:
+            Q1 = df[column].quantile(0.25)
+            Q3 = df[column].quantile(0.75)
+            IQR = Q3 - Q1
+            outliers = df[(df[column] < (Q1 - 1.5 * IQR)) | (df[column] > (Q3 + 1.5 * IQR))]
+            outlier_info[column] = len(outliers)
+        return outlier_info
+
+    def calculate_missing_data_percentage(self, df):
+        return df.isnull().mean() * 100
+
+    def identify_duplicates(self, df):
+        return df.duplicated().sum()
+
+    def check_invalid_entries(self, df, column_name, valid_range=None):
+        if valid_range:
+            invalid_entries = df[(df[column_name] < valid_range[0]) | (df[column_name] > valid_range[1])]
+        else:
+            invalid_entries = pd.DataFrame()
+        return len(invalid_entries)
