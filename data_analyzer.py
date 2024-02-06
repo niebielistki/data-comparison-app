@@ -983,6 +983,8 @@ class DataAnalyzer(QObject):
                 detailed_textual_sections = self.perform_detailed_textual_analysis(df)
                 textual_analysis_sections.extend(detailed_textual_sections)
 
+
+
             # Concatenate numerical analysis results
             if numerical_analysis_results:
                 numerical_analysis_results_df = pd.concat(numerical_analysis_results, axis=1)
