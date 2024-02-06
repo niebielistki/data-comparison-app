@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QLabel, QFileDialog, QTabWidget, QScrollArea)
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtGui import QTextOption
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -25,12 +26,12 @@ class ResultsWidget(QWidget):
 
         # Initialize tab screen
         self.tabs = QTabWidget()
-        self.graphTab = QWidget()  # Tab for graphical results (plots)
         self.textTab = QWidget()  # Tab for textual results (tables)
+        self.graphTab = QWidget()  # Tab for graphical results (plots)
 
         # Add tabs to the tab widget
-        self.tabs.addTab(self.graphTab, "Graph")
         self.tabs.addTab(self.textTab, "Text")
+        self.tabs.addTab(self.graphTab, "Graph")
         self.tabs.setStyleSheet("QTabBar::tab { width: 100px; }")
 
         # Graph Tab layout
@@ -47,6 +48,8 @@ class ResultsWidget(QWidget):
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setLayout(QVBoxLayout())
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.scrollArea.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.scrollAreaWidgetContents.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         textLayout.addWidget(self.scrollArea)
         self.textTab.setLayout(textLayout)
 
@@ -91,7 +94,6 @@ class ResultsWidget(QWidget):
         # Initialize the scroll area for displaying tables
         self.scrollArea = QScrollArea(self)
         self.scrollArea.setWidgetResizable(True)
-
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setLayout(QVBoxLayout())
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -195,6 +197,8 @@ class ResultsWidget(QWidget):
 
             # Display the results
             text_widget = QTextEdit()
+            text_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            text_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             text_widget.setReadOnly(True)
             text_widget.setHtml(html_results)
             self.scrollAreaWidgetContents.layout().addWidget(text_widget)
@@ -293,7 +297,6 @@ class ResultsWidget(QWidget):
         """
         Update the ResultsWidget with the provided data and display it.
         """
-        print("updateAndShow called with data:", data)  # Debug print
 
         # Handle numerical results
         numerical_data = data.get('numerical_results', pd.DataFrame())
@@ -301,16 +304,14 @@ class ResultsWidget(QWidget):
             self.displayGraphResults(numerical_data)
 
         # Handle textual results
-        textual_data = data.get('textual_results', "")
-        if isinstance(textual_data, pd.DataFrame):
-            if not textual_data.empty:
-                self.displayTextResults(textual_data)
-        elif textual_data:  # assuming textual_data is a non-empty string
+        textual_data = data.get('textual_results', [])
+        if textual_data:  # assuming textual_data is a list of dictionaries
             self.displayTextResults(textual_data)
 
         # Show the widget and enable export buttons if there are results
         self.show()
         self.enableExportButtons(not numerical_data.empty or bool(textual_data))
+
 
 
 

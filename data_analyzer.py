@@ -257,7 +257,7 @@ class AnalysisUtilities:
         exceptional_changes = np.where(np.abs(np.diff(data_series)) > (mean_change + 2 * adjusted_rolling_std))[0]
         return list(exceptional_changes)
 
-    # Helper functions for perform_data_cleaning_analysis
+    # Functions for perform_data_cleaning_analysis
 
     @staticmethod
     def calculate_missing_data_percentage(column_data):
@@ -285,76 +285,6 @@ class AnalysisUtilities:
             invalid_entries = column_data[(column_data < valid_range[0]) | (column_data > valid_range[1])]
             return len(invalid_entries)
         return 0  # Return 0 if no valid_range is specified or checking is not applicable
-
-    # Helper functions for calculate_descriptive_statistics
-
-    @staticmethod
-    def calculate_mode(series):
-        mode_val = series.mode()
-        return mode_val.iloc[0] if not mode_val.empty else 'No mode'
-
-    @staticmethod
-    def calculate_range(series):
-        return series.min(), series.max()
-
-    @staticmethod
-    def calculate_mean(series):
-        return series.mean()
-
-    @staticmethod
-    def calculate_median(series):
-        return series.median()
-
-    @staticmethod
-    def calculate_variance(series):
-        return series.var()
-
-    @staticmethod
-    def calculate_standard_deviation(series):
-        return series.std()
-
-    @staticmethod
-    def calculate_skewness(series):
-        return series.skew()
-
-    @staticmethod
-    def calculate_kurtosis(series):
-        return series.kurt()
-
-    @staticmethod
-    def calculate_percentiles(series, percentiles=[25, 50, 75]):
-        return {f"{p}th": series.quantile(p / 100.0) for p in percentiles}
-
-    @staticmethod
-    def describe_correlation(matrix, column1, column2):
-        correlation = matrix.loc[column1, column2]
-        if correlation > 0.5:
-            return "strong positive correlation"
-        elif correlation < -0.5:
-            return "strong negative correlation"
-        else:
-            return "weak correlation"
-
-    # Additional helper to interpret skewness and kurtosis
-    @staticmethod
-    def interpret_skewness(skewness_value):
-        if skewness_value > 1:
-            return "highly positive skew"
-        elif skewness_value < -1:
-            return "highly negative skew"
-        elif skewness_value > 0:
-            return "moderate positive skew"
-        else:
-            return "moderate negative skew"
-
-    @staticmethod
-    def interpret_kurtosis(kurtosis_value):
-        if kurtosis_value > 3:
-            return "leptokurtic (peaked)"
-        elif kurtosis_value < 3:
-            return "platykurtic (flat)"
-        else:
-            return "mesokurtic (normal)"
 
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
@@ -865,6 +795,7 @@ class DataAnalyzer(QObject):
                 'most_volatile_date': df['rolling_volatility'].idxmax().strftime('%Y-%m-%d'),
                 'least_volatile_date': df['rolling_volatility'].idxmin().strftime('%Y-%m-%d'),
                 'highest_volatility_value': df['rolling_volatility'].max()
+                # ... [additional data points] ...
             }
 
             # Calculate volatility and add to analysis_data
@@ -928,48 +859,49 @@ class DataAnalyzer(QObject):
     # Function for Descriptive Statistics
     def calculate_descriptive_statistics(self, df):
         """
-        Calculates descriptive statistics for numerical columns in a dataframe and formats them for display.
+        Calculates descriptive statistics for numerical columns in a dataframe.
         :param df: DataFrame containing the data.
-        :return: Dictionary with a consistent structure for display.
+        :return: DataFrame with descriptive statistics.
         """
-        # Initialization
-        analysis_results = []
+        # Filter to only include numerical columns
+        numerical_df = df.select_dtypes(include=[np.number])
 
-        # Check for 'Year' column and compute start and end years
-        if 'Year' in df.columns:
-            start_year, end_year = df['Year'].min(), df['Year'].max()
-        else:
-            start_year, end_year = None, None
+        if numerical_df.empty:
+            print("No numerical data for descriptive statistics.")
+            return pd.DataFrame()
 
-        # Analysis for each numerical column
-        for column in df.select_dtypes(include=[np.number]).columns:
-            if column == 'Year':  # Optionally skip the 'Year' column
-                continue
+        print("Input DataFrame for Descriptive Statistics:\n", numerical_df)
 
-            # Compute statistics
-            stats = {
-                'Mean': df[column].mean(),
-                'Median': df[column].median(),
-                'Mode': df[column].mode()[0] if not df[column].mode().empty else 'N/A',
-                'Range': [df[column].min(), df[column].max()],
-                'Variance': df[column].var(),
-                'Standard Deviation': df[column].std(),
-                'Skewness': df[column].skew(),
-                'Kurtosis': df[column].kurt()
-            }
+        # Creating a DataFrame to store statistics
+        stats_df = pd.DataFrame()
 
-            # Formatting for display (example: could be adjusted based on requirements)
-            formatted_stats = {
-                'title': f"{column} Statistics",
-                'content': f"Mean: {stats['Mean']}, Median: {stats['Median']}, Mode: {stats['Mode']}, "
-                           f"Range: {stats['Range'][0]} to {stats['Range'][1]}, Variance: {stats['Variance']}, "
-                           f"Standard Deviation: {stats['Standard Deviation']}, Skewness: {stats['Skewness']}, "
-                           f"Kurtosis: {stats['Kurtosis']}"
-            }
+        for column in numerical_df.columns:
+            stats = numerical_df[column].describe()
+            skewness = numerical_df[column].skew()
+            kurtosis = numerical_df[column].kurtosis()
 
-            analysis_results.append(formatted_stats)
+            stats_df[column] = [
+                stats['mean'],
+                stats['50%'],
+                numerical_df[column].mode().iloc[0] if not numerical_df[column].mode().empty else np.nan,
+                stats['max'] - stats['min'],
+                numerical_df[column].var(),
+                stats['std'],
+                skewness,
+                kurtosis
+            ]
 
-        return {'title': 'Descriptive Statistics', 'content': analysis_results}
+        stats_df.index = ['Mean', 'Median', 'Mode', 'Range', 'Variance', 'Standard Deviation', 'Skewness', 'Kurtosis']
+
+        # Correlation Matrix (if there are at least two numerical columns)
+        if len(numerical_df.columns) > 1:
+            correlation_matrix = numerical_df.corr()
+            # Use pd.concat to add the correlation matrix as a new section in the stats_df
+            stats_df = pd.concat([stats_df, correlation_matrix], keys=['Descriptive Stats', 'Correlation Matrix'])
+
+        print("Output DataFrame for Descriptive Statistics:\n", stats_df)
+
+        return stats_df
 
     def perform_detailed_textual_analysis(self, df):
         """
@@ -1011,6 +943,7 @@ class DataAnalyzer(QObject):
         return "\n".join(analysis_text)
 
     def classify_and_analyze_data(self, data_frames):
+        print("classify_and_analyze_data method called.")
         try:
             numerical_analysis_results = []
             textual_analysis_sections = []
@@ -1025,9 +958,10 @@ class DataAnalyzer(QObject):
 
                 # Descriptive Statistics
                 if not self.section_already_added('Descriptive Statistics', textual_analysis_sections):
-                    descriptive_stats_section = self.calculate_descriptive_statistics(df)
-                    if descriptive_stats_section['content']:  # Ensure there is content to add
-                        textual_analysis_sections.append(descriptive_stats_section)
+                    descriptive_stats_text = self.calculate_descriptive_statistics(df).to_string()
+                    if descriptive_stats_text:
+                        textual_analysis_sections.append(
+                            {'title': 'Descriptive Statistics', 'content': descriptive_stats_text})
 
                 # Time Series Analysis
                 if not self.section_already_added('Time Series Analysis', textual_analysis_sections):
@@ -1048,6 +982,10 @@ class DataAnalyzer(QObject):
                 # Additional detailed textual analysis
                 detailed_textual_sections = self.perform_detailed_textual_analysis(df)
                 textual_analysis_sections.extend(detailed_textual_sections)
+
+                for section in textual_analysis_sections:
+                    display_title = f"▶︎ {section['title']}"
+                    # Now use display_title when setting the text in your UI elements
 
             # Concatenate numerical analysis results
             if numerical_analysis_results:
