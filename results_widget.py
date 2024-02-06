@@ -197,8 +197,6 @@ class ResultsWidget(QWidget):
 
             # Display the results
             text_widget = QTextEdit()
-            text_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            text_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             text_widget.setReadOnly(True)
             text_widget.setHtml(html_results)
             self.scrollAreaWidgetContents.layout().addWidget(text_widget)
@@ -224,8 +222,6 @@ class ResultsWidget(QWidget):
 
         numerical_data.plot(kind=kind_of_plot, ax=ax)
         self.canvas.draw()
-        self.scrollAreaWidgetContents.layout().addWidget(self.canvas)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
     def displayAsTable(self, data):
         """
