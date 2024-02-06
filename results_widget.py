@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
+import traceback
 
 class ResultsWidget(QWidget):
     def __init__(self, parent=None):
@@ -164,34 +165,49 @@ class ResultsWidget(QWidget):
             if isinstance(section['content'], list):
                 for item in section['content']:
                     if isinstance(item, dict) and 'title' in item and 'content' in item:
-                        # Assuming 'content' in the item is a string
                         html_output += "<h3>{}</h3>".format(item['title'])
                         html_output += item['content']
                     else:
                         html_output += "<p>{}</p>".format(item)
+            elif isinstance(section['content'], dict):
+                for key, value in section['content'].items():
+                    html_output += "<h3>{}</h3>".format(key)
+                    if isinstance(value, dict):
+                        for sub_key, sub_value in value.items():
+                            html_output += "<p><b>{}</b>: {}</p>".format(sub_key, sub_value)
+                    else:
+                        html_output += "<p>{}</p>".format(value)
             else:
-                html_output += section['content']
+                html_output += "<p>{}</p>".format(section['content'])
 
         html_output += "</body></html>"
         return html_output
 
     def displayTextResults(self, results_sections):
         """
-        Handles the display of textual analysis results.
-        Assumes results_sections is a list of dictionaries with 'title' and 'content'.
+        Handles the display of textual analysis results with keys formatted for better readability.
         """
-        if not results_sections:
-            print("No textual data to display.")
-            return
+        try:
+            if not results_sections:
+                print("No textual data to display.")
+                return
 
-        html_results = self.format_analysis_as_html(results_sections)
+            # Prepends an arrow to each section title for display
+            for section in results_sections:
+                section['title'] = f"▶︎ {section['title']}"
 
-        # Display the results
-        text_widget = QTextEdit()
-        text_widget.setReadOnly(True)
-        text_widget.setHtml(html_results)
-        self.scrollAreaWidgetContents.layout().addWidget(text_widget)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+            html_results = self.format_analysis_as_html(results_sections)
+
+            # Display the results
+            text_widget = QTextEdit()
+            text_widget.setReadOnly(True)
+            text_widget.setHtml(html_results)
+            self.scrollAreaWidgetContents.layout().addWidget(text_widget)
+            self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            traceback.print_exc()  # This line prints the traceback of the exception
 
     def displayGraphResults(self, numerical_data):
         """
@@ -300,6 +316,12 @@ class ResultsWidget(QWidget):
         # Show the widget and enable export buttons if there are results
         self.show()
         self.enableExportButtons(not numerical_data.empty or bool(textual_data))
+
+
+
+
+
+
 
 
 

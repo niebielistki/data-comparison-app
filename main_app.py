@@ -324,6 +324,7 @@ class DataComparisonApp(QWidget):
                 print("Filtered data frames are not empty, proceeding with analysis.")
                 numerical_results, textual_results = self.analyzer.classify_and_analyze_data(filtered_data_frames)
 
+
                 # Debug prints to inspect types and contents
                 print("numerical_results type:", type(numerical_results))
                 print("numerical_results content:", numerical_results)
