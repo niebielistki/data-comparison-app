@@ -63,11 +63,6 @@ class ResultsWidget(QWidget):
         self.initExportButtons(hbox)
         vbox.addLayout(hbox)  # This adds export buttons below the tabs
 
-        # Add a QLabel for displaying summary
-        self.summaryLabel = QLabel("Summary will be shown here.", self)
-        self.summaryLabel.setAlignment(Qt.AlignTop)
-        vbox.addWidget(self.summaryLabel)
-
         self.setLayout(vbox)
 
     def initExportButtons(self, layout):
