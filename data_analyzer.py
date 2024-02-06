@@ -257,6 +257,35 @@ class AnalysisUtilities:
         exceptional_changes = np.where(np.abs(np.diff(data_series)) > (mean_change + 2 * adjusted_rolling_std))[0]
         return list(exceptional_changes)
 
+    # Functions for perform_data_cleaning_analysis
+
+    @staticmethod
+    def calculate_missing_data_percentage(column_data):
+        """Calculates the percentage of missing data in a column."""
+        return column_data.isnull().mean() * 100
+
+    @staticmethod
+    def detect_outliers(column_data):
+        """Detects outliers using the Interquartile Range (IQR) method."""
+        Q1 = column_data.quantile(0.25)
+        Q3 = column_data.quantile(0.75)
+        IQR = Q3 - Q1
+        outliers = column_data[(column_data < (Q1 - 1.5 * IQR)) | (column_data > (Q3 + 1.5 * IQR))]
+        return len(outliers)
+
+    @staticmethod
+    def identify_duplicates(column_data):
+        """Identifies the count of duplicate entries in a column."""
+        return column_data.duplicated().sum()
+
+    @staticmethod
+    def check_invalid_entries(column_data, valid_range=None):
+        """Checks for invalid entries based on a specified valid range."""
+        if valid_range:
+            invalid_entries = column_data[(column_data < valid_range[0]) | (column_data > valid_range[1])]
+            return len(invalid_entries)
+        return 0  # Return 0 if no valid_range is specified or checking is not applicable
+
 class DataAnalyzer(QObject):
     analysisComplete = pyqtSignal(object)
 
@@ -792,46 +821,40 @@ class DataAnalyzer(QObject):
         :param df: DataFrame containing the data.
         :return: String with results from data cleaning analysis.
         """
-        analysis_text = ["Data Cleaning Tools:"]
+        # analysis_text = ["Data Cleaning Tools:"]
 
-        # Missing Data Identification
-        missing_data = df.isnull().sum()
-        missing_data_percentage = (missing_data / len(df)) * 100
-        for column, missing in missing_data.items():
-            if missing > 0:
-                analysis_text.append(
-                    f'- Missing Data: "{column}" column has {missing_data_percentage[column]:.2f}% missing data.')
+        analysis_results = {}
 
-        # Data Type Inconsistency
-        for column in df.columns:
-            data_types = df[column].apply(lambda x: type(x).__name__).value_counts()
-            if len(data_types) > 1:
-                analysis_text.append(f'- Data Type Inconsistency: "{column}" has {data_types.to_dict()}.')
-
-        # Outlier Detection
+        # Iterate through each numeric column in the DataFrame
         for column in df.select_dtypes(include=[np.number]).columns:
-            Q1 = df[column].quantile(0.25)
-            Q3 = df[column].quantile(0.75)
-            IQR = Q3 - Q1
-            outliers = df[(df[column] < (Q1 - 1.5 * IQR)) | (df[column] > (Q3 + 1.5 * IQR))]
-            if not outliers.empty:
-                analysis_text.append(
-                    f'- Outlier Detection: "{column}" column has {len(outliers)} potential outliers (values significantly higher or lower than the rest).')
+            column_data = df[column]
+            analysis_results[column] = {
+                'missing_data_percentage': AnalysisUtilities.calculate_missing_data_percentage(column_data),
+                'outliers_count': AnalysisUtilities.detect_outliers(column_data),
+                'duplicates_count': AnalysisUtilities.identify_duplicates(column_data),
+                'invalid_entries_count': AnalysisUtilities.check_invalid_entries(column_data,valid_range=[0, float('inf')])
+            }
 
-        # Duplicate Data
-        duplicate_rows = df[df.duplicated()]
-        duplicate_text = f'No duplicate entries found.' if duplicate_rows.empty else f'{duplicate_rows.shape[0]} duplicate rows found.'
-        analysis_text.append(f'- Duplicate Data: {duplicate_text}')
+        # Format the keys of the analysis results
+        formatted_analysis_results = self.format_analysis_keys(analysis_results)
 
-        # Invalid Data
-        # This should be adjusted based on the specific requirements of what constitutes 'invalid' data in your dataset
-        for column in df.select_dtypes(include=[np.number]).columns:
-            invalid_data = df[df[column] < 0]
-            if not invalid_data.empty:
-                analysis_text.append(
-                    f'- Invalid Data: "{column}" has {invalid_data.shape[0]} entries with negative values.')
+        # Convert the analysis results into a more user-friendly format if needed
+        # For example, creating a summary string or a structured dictionary for display
+        return formatted_analysis_results
 
-        return "\n".join(analysis_text)
+    def format_analysis_keys(self, analysis_results):
+        formatted_results = {}
+        for column, metrics in analysis_results.items():
+            formatted_metrics = {self.format_key_for_display(key): value for key, value in metrics.items()}
+            formatted_results[column] = formatted_metrics
+        return formatted_results
+
+    @staticmethod
+    def format_key_for_display(key):
+        """
+        Formats the key for display by replacing underscores with spaces and capitalizing each word.
+        """
+        return ' '.join(word.capitalize() for word in key.split('_'))
 
     # Function for Descriptive Statistics
     def calculate_descriptive_statistics(self, df):
