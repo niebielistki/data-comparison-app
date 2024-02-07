@@ -1,4 +1,4 @@
-# CSVFolderReader
+# csv_folder_reader.py
 # Description: This program reads all CSV files in a specified folder and prints their contents in a readable CSV format.
 # Usage: Useful for quickly viewing the contents of multiple CSV files during development or data analysis.
 # Additional Feature: Indicates when a file is empty.
@@ -7,7 +7,7 @@ import os
 import csv
 
 # Define the folder path containing the CSV files
-folder_path = "/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/test_data/data_6"  # Replace with your folder path
+folder_path = ""  # Replace with your folder path
 
 # Iterate over each file in the folder
 for filename in os.listdir(folder_path):

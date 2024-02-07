@@ -19,7 +19,7 @@ Notably, the module includes functions for performing detailed textual analysis,
 
 
 import pandas as pd
-from csv_handler import CSVHandler
+from app.csv_handler import CSVHandler
 from scipy.stats import pearsonr
 from scipy.stats import zscore
 from scipy.stats import linregress
@@ -28,12 +28,6 @@ from collections import defaultdict
 import numpy as np
 import traceback
 from sklearn.linear_model import LinearRegression
-import nltk
-from nltk.sentiment import SentimentIntensityAnalyzer
-from nltk.tokenize import word_tokenize
-from nltk.probability import FreqDist
-from nltk.corpus import stopwords
-import string
 import random
 
 

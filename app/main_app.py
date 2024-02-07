@@ -23,17 +23,14 @@ import os
 import sys
 import pandas as pd
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-                             QLabel, QFileDialog, QCheckBox, QApplication, QStatusBar)
+                             QLabel, QCheckBox, QApplication, QStatusBar)
 from PyQt5.QtCore import Qt
-from PyQt5.QtCore import pyqtSignal, QObject
 from collections import defaultdict
 from PyQt5.QtWidgets import QFileDialog
-from csv_handler import CSVHandler
-from data_analyzer import DataAnalyzer
+from app.csv_handler import CSVHandler
+from app.data_analyzer import DataAnalyzer
 from results_widget import ResultsWidget
-from PyQt5.QtWidgets import QScrollArea
 from PyQt5.QtWidgets import QComboBox
-import numpy as np
 import traceback
 
 class DataComparisonApp(QWidget):
