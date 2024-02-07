@@ -1,10 +1,10 @@
 import pytest
-from data_analyzer import DataAnalyzer
+from app.data_analyzer import DataAnalyzer
 import pandas as pd
 import numpy as np
 from scipy.stats import pearsonr
 import time
-from csv_handler import CSVHandler
+from app.csv_handler import CSVHandler
 
 @pytest.fixture
 def analyzer():
@@ -129,20 +129,20 @@ def test_analyze_correlations(setup_data_frames):
     assert np.isclose(correlations[('A', 'B')], expected_correlation)
 
 def test_load_with_invalid_path(analyzer):
-    invalid_path = "/tests/test_data/bundle47"
+    invalid_path = "/tests/data/bundle47"
     result = analyzer.load_and_preprocess_data(invalid_path)
     assert result == {} or all(df.empty for df in result.values() if isinstance(df, pd.DataFrame))
 
 def test_performance_large_dataset(analyzer):
     some_acceptable_duration = 10  # seconds
     start_time = time.time()
-    analyzer.load_and_preprocess_data("/Users/wiktoria/PycharmProjects/DataComparisonApp/test_data/data_4")
+    analyzer.load_and_preprocess_data("/Users/wiktoria/PycharmProjects/DataComparisonApp/data/data_4")
     end_time = time.time()
     assert end_time - start_time < some_acceptable_duration
 
 def test_integration_with_csv_handler(analyzer, csv_handler):
     # Path to a directory containing test CSV files
-    folder_path = "/test_data/data_4"
+    folder_path = "/data/data_4"
 
     # Load the CSV files using CSVHandler
     csv_handler.read_csv_files(folder_path)

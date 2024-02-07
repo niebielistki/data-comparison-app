@@ -1,13 +1,9 @@
 import unittest
-from main_app import DataComparisonApp
-from data_analyzer import DataAnalyzer
-from PyQt5.QtWidgets import QApplication
-import sys
+from app.data_analyzer import DataAnalyzer
 import pandas as pd
 import os
-from collections import defaultdict
 
-test_data_directory = '/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/test_data/data_6'
+test_data_directory = '/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/data/data_6'
 
 class TestDataAnalyzer(unittest.TestCase):
 

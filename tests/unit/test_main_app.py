@@ -1,8 +1,7 @@
 import pytest
 from PyQt5.QtWidgets import QApplication
-from main_app import DataComparisonApp
+from app.main_app import DataComparisonApp
 import pandas as pd
-from unittest.mock import MagicMock
 
 
 @pytest.fixture(scope='module')
@@ -17,8 +16,8 @@ def app(qtbot):
 
 def test_load_csv_files(app, qtbot, monkeypatch):
     # Mock the getOpenFileNames function to return predefined file paths
-    path1 = '/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/test_data/data_6/vet_data_2023_03.csv'
-    path2 = '/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/test_data/data_6/vet_data_2022_05.csv'
+    path1 = '/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/data/data_6/vet_data_2023_03.csv'
+    path2 = '/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/data/data_6/vet_data_2022_05.csv'
     monkeypatch.setattr(QFileDialog, 'getOpenFileNames',
                         lambda *args, **kwargs: ([path1, path2], 'All Files (*)'))
 

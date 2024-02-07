@@ -1,8 +1,7 @@
 import unittest
-from unittest.mock import MagicMock
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QCheckBox
-from main_app import DataComparisonApp
+from app.main_app import DataComparisonApp
 import sys
 import pandas as pd
 

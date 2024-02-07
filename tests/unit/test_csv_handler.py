@@ -1,11 +1,11 @@
 # Import the CSVHandler class from your module
-from csv_handler import CSVHandler
+from app.csv_handler import CSVHandler
 
 # Create an instance of the CSVHandler class
 csv_handler = CSVHandler()
 
 # Define the folder path containing your CSV files
-folder_path = "/test_data/data_4"
+folder_path = "/data/data_4"
 
 
 def test_read_csv_files():
