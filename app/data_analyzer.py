@@ -1256,7 +1256,7 @@ class DataAnalyzer(QObject):
         except Exception as e:
             print(f"Error in identifying patterns across dataframes: {e}")
             return {}
-    def perform_regression_analysis(df, independent_var, dependent_var):
+    def perform_regression_analysis(self, df, independent_var, dependent_var):
         X = df[independent_var].values.reshape(-1, 1)
         y = df[dependent_var]
 

@@ -29,7 +29,7 @@ from collections import defaultdict
 from PyQt5.QtWidgets import QFileDialog
 from app.csv_handler import CSVHandler
 from app.data_analyzer import DataAnalyzer
-from results_widget import ResultsWidget
+from app.results_widget import ResultsWidget
 from PyQt5.QtWidgets import QComboBox
 import traceback
 
