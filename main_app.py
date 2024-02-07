@@ -1,5 +1,23 @@
-#! python3
-# main_app.py
+"""
+main_app.py
+
+The central script of the DataComparisonApp, main_app.py orchestrates the application's flow, integrating functionalities for data loading, analysis, and visualization within a PyQt5 GUI framework. This script initializes the application's main window, sets up the user interface, and manages interactions between the user and the application components.
+
+Key Features:
+- GUI initialization, including buttons for loading CSV files, performing analysis, and exporting results.
+- Integration with CSVHandler for reading and preprocessing CSV files.
+- Utilization of the DataAnalyzer class for conducting data analysis, including descriptive statistics, trend analysis, and data comparison.
+- Display of analysis results through the ResultsWidget, which supports both textual and graphical representation.
+- Dynamic generation of checkboxes for column selection, enabling users to specify the data columns they wish to analyze.
+- Automatic and manual analysis mode toggling, allowing users to choose between automatic column selection based on data completeness or manual column selection.
+- Time series analysis prioritization, where users can specify the importance of date-related columns in their analysis.
+
+Usage:
+The script is executed as the main entry point of the DataComparisonApp. Upon launching, it presents a graphical interface where users can load their CSV data, select columns for analysis, and view the resulting insights in various formats. The application supports exporting the analyzed data and visualizations, providing users with flexibility in how they utilize their analysis results.
+
+This script is designed to be both a standalone application and a starting point for further development and customization. Developers can extend its functionalities by integrating more sophisticated data processing algorithms, enhancing the user interface, or adapting the application to specific data analysis workflows.
+"""
+
 
 import os
 import sys

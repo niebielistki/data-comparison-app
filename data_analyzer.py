@@ -1,5 +1,22 @@
-#! python3
-# data_analyzer.py
+"""
+data_analyzer.py
+
+This module encompasses the DataAnalyzer class and AnalysisUtilities, offering comprehensive data analysis functionalities within the DataComparisonApp. It leverages libraries such as pandas, scipy, and sklearn to perform a wide array of data analysis tasks. The module facilitates:
+
+- Trend detection and volatility calculation for time series data.
+- Descriptive statistics calculation including mean, median, mode, variance, and standard deviation.
+- Outlier detection using the Interquartile Range (IQR) method and Z-score.
+- Sentiment analysis on textual data using NLTK, including frequency distribution and stopword filtering.
+- Data cleaning and preprocessing, including assessing missing data, identifying duplicates, and validating content based on specific criteria.
+- Generation of comparison possibilities and suggestions for analysis based on data characteristics.
+- Execution of linear regression to analyze relationships between variables.
+- Integration with PyQt5 for signal-based communication within the app, enhancing its interactive analysis capabilities.
+
+The script's structure is designed to support both manual and automatic data analysis workflows, enabling users to extract meaningful insights through graphical and textual representations. It acts as a bridge between raw data handling performed by csv_handler.py and the user interface, providing a backend engine for data analysis, trend identification, and statistical computations. The DataAnalyzer class emits signals upon the completion of analysis tasks, facilitating asynchronous updates to the application's user interface.
+
+Notably, the module includes functions for performing detailed textual analysis, identifying patterns in data, and calculating correlations between different data columns. It demonstrates advanced usage of data manipulation and analysis techniques, making it a crucial component of the DataComparisonApp for users seeking to perform in-depth data analysis and comparison.
+"""
+
 
 import pandas as pd
 from csv_handler import CSVHandler

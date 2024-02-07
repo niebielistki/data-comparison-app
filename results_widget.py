@@ -1,5 +1,22 @@
-#! python3
-# results_widget.py
+"""
+results_widget.py
+
+This module defines the ResultsWidget class, a component of the DataComparisonApp designed to display analysis results. It integrates with PyQt5 to provide a graphical user interface for presenting both textual and graphical data analysis outcomes. The ResultsWidget is capable of rendering tables, charts, and textual summaries, offering users an interactive and intuitive way to explore their data analysis results.
+
+Key Features:
+- Dynamically generates tabs for text and graph views, allowing users to switch between different types of analysis results.
+- Implements export functionality, enabling users to save their results as text, CSV, Excel, or graphical images.
+- Utilizes matplotlib for plotting, ensuring that graphical results are displayed efficiently within the application.
+- Supports displaying lengthy textual results in a scrollable area, enhancing the user experience when dealing with extensive analysis outputs.
+- Provides a clean and straightforward interface for interacting with the data, including buttons for exporting results in various formats.
+
+The ResultsWidget class is designed with flexibility in mind, allowing for easy extension or modification to accommodate additional types of data analysis results or different visualization needs. It acts as a bridge between the analytical backend of the DataComparisonApp and the end-user, presenting the processed data in a user-friendly manner.
+
+Usage:
+The ResultsWidget is typically instantiated and utilized within a larger PyQt5 application framework. It requires a parent widget or layout when initialized and can be populated with data through its public methods, such as `renderResults`, `displayTextResults`, and `displayGraphResults`. Export buttons are automatically handled within the widget, providing users with the option to save their results directly from the interface.
+
+"""
+
 
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QLabel, QFileDialog, QTabWidget, QScrollArea)
@@ -222,6 +239,8 @@ class ResultsWidget(QWidget):
 
         numerical_data.plot(kind=kind_of_plot, ax=ax)
         self.canvas.draw()
+        # self.scrollAreaWidgetContents.layout().addWidget(self.canvas)
+        # self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
     def displayAsTable(self, data):
         """
