@@ -18,6 +18,7 @@ The script is executed as the main entry point of the DataComparisonApp. Upon la
 This script is designed to be both a standalone application and a starting point for further development and customization. Developers can extend its functionalities by integrating more sophisticated data processing algorithms, enhancing the user interface, or adapting the application to specific data analysis workflows.
 """
 
+__version__ = '0.1.0-beta'
 
 import os
 import sys
