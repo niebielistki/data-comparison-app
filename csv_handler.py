@@ -1,5 +1,19 @@
-#! python3
-# csv_handler.py
+"""
+csv_handler.py
+
+This module contains the CSVHandler class, which is designed to facilitate the loading, analysis, and preprocessing of CSV files within the DataComparisonApp. It offers functionality to read multiple CSV files from a specified directory, identify common columns across these files, and perform preliminary data analysis tasks such as detecting outliers, calculating missing data percentages, and identifying duplicates. Additionally, it supports more advanced analysis by suggesting comparison scenarios based on the data's structure and content, validating column contents against specified criteria (e.g., email or numeric validation), and generating comparison possibilities for effective data analysis. The CSVHandler serves as a critical component of the DataComparisonApp by providing the foundational data manipulation capabilities required for further analysis and visualization.
+
+Key functionalities include:
+- Reading CSV files and storing their contents as pandas DataFrames.
+- Identifying common columns across multiple CSV files to suggest potential comparison points.
+- Mapping columns to files for easy tracking of data sources.
+- Validating column contents based on predefined criteria (e.g., email, numeric).
+- Analyzing comparison scenarios to guide the user in selecting meaningful data points for analysis.
+- Detecting outliers, calculating missing data percentages, identifying duplicates, and checking for invalid entries within the data for quality control.
+- Generating suggestions for data comparisons based on the analysis of common columns and data types.
+
+Designed to support a variety of data analysis workflows within the app, the CSVHandler class provides a robust toolkit for the initial handling and inspection of CSV data, thereby enabling users to make informed decisions about which data columns to compare and analyze.
+"""
 
 import os
 import pandas as pd
