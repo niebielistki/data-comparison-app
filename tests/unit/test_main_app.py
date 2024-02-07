@@ -1,64 +1,80 @@
-import pytest
-from PyQt5.QtWidgets import QApplication
+"""
+This script tests the functionalities of the DataComparisonApp class, focusing on its ability to initialize properly,
+handle data loading, perform analysis, and display results.
+"""
+
+import unittest
+from PyQt5.QtWidgets import QApplication, QFileDialog
+from PyQt5.QtCore import Qt
+from unittest.mock import patch
 from app.main_app import DataComparisonApp
+from app.results_widget import ResultsWidget
 import pandas as pd
+import sys
+import os
 
+class TestDataComparisonApp(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Initialize QApplication once for the test suite
+        cls.app = QApplication(sys.argv)
 
-@pytest.fixture(scope='module')
-def app(qtbot):
-    test_app = QApplication.instance()
-    if not test_app:
-        test_app = QApplication(sys.argv)
-    widget = DataComparisonApp()
-    qtbot.addWidget(widget)
-    return widget
+    def setUp(self):
+        # Create an instance of DataComparisonApp before each test
+        self.app = DataComparisonApp()
 
+    def test_initial_state(self):
+        """Test the initial state of the application."""
+        # Verify that the main UI components are initialized
+        self.assertIsNotNone(self.app.loadButton, "Load button should be initialized.")
+        self.assertIsNotNone(self.app.analyzeButton, "Analyze button should be initialized.")
+        self.assertIsNotNone(self.app.resultsWidget, "Results widget should be initialized.")
 
-def test_load_csv_files(app, qtbot, monkeypatch):
-    # Mock the getOpenFileNames function to return predefined file paths
-    path1 = '/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/data/data_6/vet_data_2023_03.csv'
-    path2 = '/Users/wiktoria/PycharmProjects/DataComparisonApp/tests/data/data_6/vet_data_2022_05.csv'
-    monkeypatch.setattr(QFileDialog, 'getOpenFileNames',
-                        lambda *args, **kwargs: ([path1, path2], 'All Files (*)'))
+    @patch('PyQt5.QtWidgets.QFileDialog.getOpenFileNames')
+    def test_loadCSVFiles(self, mock_getOpenFileNames):
+        """Test loading CSV files into the application with mocking."""
+        mock_file_paths = ['tests/data/data_1/sales.csv', 'tests/test_data/data_2/team_info.csv']
+        mock_getOpenFileNames.return_value = (mock_file_paths, '')
 
-    # Pretend CSV files are loaded
-    app.data_frames[path1] = pd.DataFrame({'Column1': [1, 2, 3]})
-    app.data_frames[path2] = pd.DataFrame({'Column1': [1, 2, 3]})
+        self.app.loadCSVFiles()
 
-    # Simulate clicking the load button
-    qtbot.mouseClick(app.loadButton, Qt.LeftButton)
+        for file_path in mock_file_paths:
+            self.assertIn(file_path, self.app.data_frames)
+            self.assertIsInstance(self.app.data_frames[file_path], pd.DataFrame)
 
-    # Wait for the signal that indicates loading is done
-    with qtbot.waitSignal(app.analyzer.analysisComplete, timeout=1000):
-        app.analyzer.analysisComplete.emit()
+    def test_performAnalysis(self):
+        """Simulate analysis trigger and check for results display."""
+        test_df = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+        self.app.data_frames['test_data.csv'] = test_df
 
-    # Check if data frames have been loaded
-    assert app.data_frames, "Data frames should be loaded"
+        with patch.object(self.app.analyzer, 'classify_and_analyze_data', return_value=(pd.DataFrame(), [])):
+            self.app.performAnalysis()
+            self.assertTrue(self.app.resultsWidget.isUpdated)
 
+    @patch('PyQt5.QtWidgets.QFileDialog.getSaveFileName')
+    def test_exportResults(self, mock_getSaveFileName):
+        # Assuming self.app is the correct instance of your application
+        mock_save_path = 'tests/exported_results/test_export.csv'
+        mock_getSaveFileName.return_value = (mock_save_path, '')
 
-def test_column_selection(app):
-    # Directly manipulate selected columns for testing
-    app.selected_columns = ['Column1']
+        # Populate self.app.resultsWidget.df with a dummy DataFrame before exporting
+        self.app.resultsWidget.df = pd.DataFrame({'A': [1, 2], 'B': [3, 4]})
 
-    # Check if the correct columns are selected
-    assert 'Column1' in app.selected_columns, "Column1 should be selected"
+        # Call the export function
+        self.app.resultsWidget.exportToCSV()
 
+        # Verify the file was created
+        self.assertTrue(os.path.exists(mock_save_path))
 
-def test_perform_analysis(app, qtbot):
-    # Trigger the analysis
-    qtbot.mouseClick(app.analyzeButton, Qt.LeftButton)
+        # Cleanup
+        os.remove(mock_save_path)
 
-    # Wait for the signal that indicates analysis is complete
-    with qtbot.waitSignal(app.analyzer.analysisComplete, timeout=1000):
-        app.analyzer.analysisComplete.emit()
+    def tearDown(self):
+        """Cleanup any changes made to the filesystem or application state."""
 
-    # Check if results widget is visible after analysis
-    assert app.resultsWidget.isVisible(), "Results widget should be visible after analysis"
+    @classmethod
+    def tearDownClass(cls):
+        cls.app.quit()
 
-
-def test_export_buttons(app, qtbot):
-    # Pretend analysis has been performed
-    app.resultsWidget.enableExportButtons()
-
-    # Check if export buttons are enabled
-    assert all(button.isEnabled() for button in app.exportButtons), "Export buttons should be enabled after analysis"
+if __name__ == '__main__':
+    unittest.main()

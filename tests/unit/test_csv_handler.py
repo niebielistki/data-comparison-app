@@ -1,147 +1,113 @@
-# Import the CSVHandler class from your module
-from app.csv_handler import CSVHandler
-
-# Create an instance of the CSVHandler class
-csv_handler = CSVHandler()
-
-# Define the folder path containing your CSV files
-folder_path = "/data/data_4"
+import unittest
+import os
+import shutil
+import pandas as pd
+from app.csv_handler import CSVHandler  # Adjust the import path based on your project structure
 
 
-def test_read_csv_files():
-    data_frames = csv_handler.read_csv_files(folder_path)
-    print("Test Read CSV Files: " + ("Passed" if data_frames else "Failed - No CSV files found."))
-    return data_frames
+class TestCSVHandler(unittest.TestCase):
+    """
+    Unit tests for the CSVHandler class.
+
+    Tests cover reading CSV files, identifying common columns, mapping columns to files,
+    validating column content, analyzing comparison scenarios, data types, and generating
+    comparison possibilities and suggestions.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Set up a temporary directory and populate it with CSV files for testing.
+        This method runs once before all tests.
+        """
+        cls.test_dir = "test_data"
+        os.makedirs(cls.test_dir, exist_ok=True)
+        # Create sample CSV files for testing
+        data = {'Email': ['test@example.com', 'example@test.com'],
+                'Age': [25, 30]}
+        cls.sample_csv_path = os.path.join(cls.test_dir, "sample.csv")
+        pd.DataFrame(data).to_csv(cls.sample_csv_path, index=False)
+
+        # Initialize CSVHandler
+        cls.csv_handler = CSVHandler()
+
+    @classmethod
+    def tearDownClass(cls):
+        """
+        Clean up the temporary directory after all tests.
+        """
+        shutil.rmtree(cls.test_dir)
+
+    def test_read_csv_files(self):
+        """
+        Test reading CSV files.
+        """
+        data_frames = self.csv_handler.read_csv_files(self.test_dir)
+        self.assertIsInstance(data_frames, dict)
+        self.assertTrue(data_frames, "Expected non-empty dictionary of data frames.")
+        self.assertIn("sample.csv", data_frames)
+
+    def test_map_columns_to_files(self):
+        """
+        Test mapping columns to the files they are contained in.
+        """
+        data_frames = self.csv_handler.read_csv_files(self.test_dir)
+        column_file_map = self.csv_handler.map_columns_to_files(data_frames)
+        self.assertIsInstance(column_file_map, dict)
+        self.assertTrue(all(column in column_file_map for column in ['Email', 'Age']),
+                        "Expected columns to be mapped to files.")
+
+    def test_validate_column_content(self):
+        """
+        Test validating column content against specified criteria.
+        """
+        data_frames = self.csv_handler.read_csv_files(self.test_dir)
+        validation_results = self.csv_handler.validate_column_content(data_frames, 'Email', 'email')
+        self.assertIsInstance(validation_results, dict)
+        # Check that each Series in validation_results has all True values
+        for result in validation_results.values():
+            self.assertTrue(result.all(), "Expected all email validations to pass.")
+
+    def test_analyze_comparison_scenarios(self):
+        """
+        Test analyzing comparison scenarios based on column-file mappings.
+        """
+        data_frames = self.csv_handler.read_csv_files(self.test_dir)
+        column_file_map = self.csv_handler.map_columns_to_files(data_frames)
+        comparison_scenarios = self.csv_handler.analyze_comparison_scenarios(column_file_map)
+        self.assertIsInstance(comparison_scenarios, dict)
+        self.assertIn('with_common_columns', comparison_scenarios)
+
+    def test_analyze_data_types(self):
+        """
+        Test analyzing data types in the given CSV files.
+        """
+        data_frames = self.csv_handler.read_csv_files(self.test_dir)
+        data_type_report = self.csv_handler.analyze_data_types(data_frames)
+        self.assertIsInstance(data_type_report, dict)
+        self.assertTrue('sample.csv' in data_type_report, "Expected 'sample.csv' in data type report.")
+
+    def test_generate_comparison_possibilities(self):
+        """
+        Test generating comparison possibilities from comparison scenarios.
+        """
+        data_frames = self.csv_handler.read_csv_files(self.test_dir)
+        column_file_map = self.csv_handler.map_columns_to_files(data_frames)
+        comparison_scenarios = self.csv_handler.analyze_comparison_scenarios(column_file_map)
+        comparison_possibilities = self.csv_handler.generate_comparison_possibilities(comparison_scenarios)
+        self.assertIsInstance(comparison_possibilities, dict)
+
+    def test_suggest_comparisons(self):
+        """
+        Test suggesting comparisons based on comparison possibilities.
+        """
+        data_frames = self.csv_handler.read_csv_files(self.test_dir)
+        column_file_map = self.csv_handler.map_columns_to_files(data_frames)
+        comparison_scenarios = self.csv_handler.analyze_comparison_scenarios(column_file_map)
+        comparison_possibilities = self.csv_handler.generate_comparison_possibilities(comparison_scenarios)
+        suggestions = self.csv_handler.suggest_comparisons(comparison_possibilities)
+        self.assertIsInstance(suggestions, dict)
 
 
-def test_identify_common_columns(data_frames):
-    if not data_frames:
-        print("Test Identify Common Columns: Skipped - No CSV files read.")
-        return None
-    common_columns = csv_handler.identify_common_columns(data_frames)
-    print("Test Identify Common Columns: " + ("Passed" if common_columns else "Failed - No common columns found."))
-    return common_columns
-
-
-def test_map_columns_to_files(data_frames):
-    if not data_frames:
-        print("Test Map Columns to Files: Skipped - No CSV files read.")
-        return None
-    column_file_map = csv_handler.map_columns_to_files(data_frames)
-    print("Test Map Columns to Files: " + ("Passed" if column_file_map else "Failed - Mapping not successful."))
-    return column_file_map
-
-
-def test_validate_column_content(data_frames, column_name, validation_type):
-    if not data_frames:
-        print("Test Validate Column Content: Skipped - No CSV files read.")
-        return None
-    validation_results = csv_handler.validate_column_content(data_frames, column_name, validation_type)
-    print(f"Test Validate Column Content for '{column_name}' ({validation_type}): " + (
-        "Passed" if validation_results else "Failed - Validation not successful."))
-    return validation_results
-
-
-def test_analyze_comparison_scenarios(column_file_map):
-    if not column_file_map:
-        print("Test Analyze Comparison Scenarios: Skipped - No column file map available.")
-        return None
-    comparison_scenarios = csv_handler.analyze_comparison_scenarios(column_file_map)
-    print("Test Analyze Comparison Scenarios: " + (
-        "Passed" if comparison_scenarios else "Failed - No scenarios identified."))
-    return comparison_scenarios
-
-
-def test_analyze_data_types(data_frames):
-    if not data_frames:
-        print("Test Analyze Data Types: Skipped - No CSV files read.")
-        return None
-    data_type_report = csv_handler.analyze_data_types(data_frames)
-    print("Test Analyze Data Types: " + ("Passed" if data_type_report else "Failed - No data type report generated."))
-    return data_type_report
-
-
-def test_generate_comparison_possibilities(comparison_scenarios):
-    if not comparison_scenarios:
-        print("Test Generate Comparison Possibilities: Skipped - No comparison scenarios available.")
-        return None
-    comparison_possibilities = csv_handler.generate_comparison_possibilities(comparison_scenarios)
-    print("Test Generate Comparison Possibilities: " + (
-        "Passed" if comparison_possibilities else "Failed - No comparison possibilities generated."))
-    return comparison_possibilities
-
-def test_suggest_comparisons(comparison_possibilities):
-    if not comparison_possibilities:
-        print("Test Suggest Comparisons: Skipped - No comparison possibilities available.")
-        return None
-    suggestions = csv_handler.suggest_comparisons(comparison_possibilities)
-    print("Test Suggest Comparisons: " + ("Passed" if suggestions else "Failed - No suggestions generated."))
-    return suggestions
-
-
-def main():
-    print("Starting CSVHandler Tests...\n")
-
-    # Step 1: Test reading CSV files
-    data_frames = test_read_csv_files()
-
-    # Step 2: Test identifying common columns, mapping columns to files, and validating column content
-    common_columns = test_identify_common_columns(data_frames)
-    column_file_map = test_map_columns_to_files(data_frames)
-    validation_results_email = test_validate_column_content(data_frames, 'Email', 'email')
-
-    # Step 3: Test analyzing comparison scenarios and data types
-    comparison_scenarios = test_analyze_comparison_scenarios(column_file_map)
-    data_type_report = test_analyze_data_types(data_frames)
-
-    # Step 4: Test generating comparison possibilities
-    comparison_possibilities = test_generate_comparison_possibilities(comparison_scenarios)
-
-    # Test suggesting comparisons
-    comparison_possibilities = test_generate_comparison_possibilities(comparison_scenarios)
-    suggestions = test_suggest_comparisons(comparison_possibilities)
-
-    # Detailed Results
-    if data_frames:
-        print("\nFeatures of the Program:")
-        print("- Successfully read the following CSV files:")
-        for filename in data_frames.keys():
-            print(f"  - {filename}")
-
-        if common_columns:
-            print("\n- Common Columns: ", common_columns)
-
-        if column_file_map:
-            print("\n- File to Column Mapping:")
-            for column, files in column_file_map.items():
-                print(f"  - {column}: {files}")
-
-        if validation_results_email:
-            print("\n- Column Content Validation Results for 'Email':")
-            for file, result in validation_results_email.items():
-                print(f"  - {file}: {result}")
-
-        if comparison_scenarios:
-            print("\n- Column Comparison Scenarios:")
-            print(comparison_scenarios)
-
-        if data_type_report:
-            print("\n- Data Type Analysis Report:")
-            for file, types in data_type_report.items():
-                print(f"  - {file}: {types}")
-
-        if comparison_possibilities:
-            print("\n- Comparison Possibilities:")
-            for files, columns in comparison_possibilities.items():
-                print(f"  - {files}: {columns}")
-
-        if suggestions:
-            print("\n- Suggested Comparisons:")
-            for suggestion, details in suggestions.items():
-                print(f"  - {suggestion}")
-
-    print("\nCSVHandler Tests Completed.")
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    unittest.main()
