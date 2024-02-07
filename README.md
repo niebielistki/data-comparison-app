@@ -58,11 +58,11 @@ Export the analysis results as text, chart, CSV, or Excel.
 **- Exit:** <br>
 Use the "Exit" button to close the program.
 
-For a demonstration of the program in action, [watch this video](link-to-the-movie.com).
+**For a demonstration of the program in action, [watch this video](link-to-the-movie.com).**
 
-#### Contributing
+### Contributing
 
 Feel free to contribute to DataComparisonApp! Refer to **CONTRIBUTING.md** for tips on reporting errors, requesting functions, or submitting pull requests.
-#### License
+### License
 
 DataComparisonApp is made available under the MIT License. See the **LICENSE** file for more details.
