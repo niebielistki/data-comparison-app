@@ -58,7 +58,10 @@ Export the analysis results as text, chart, CSV, or Excel.
 **- Exit:** <br>
 Use the "Exit" button to close the program.
 
-**For a demonstration of the program in action, [watch this video](link-to-the-movie.com).**
+**For a demonstration of the program in action, watch this video:**
+
+https://github.com/niebielistki/data-comparison-app/assets/151925931/59ae5e6a-acec-48bb-a631-37de38a6512b
+
 
 ### Contributing
 
